@@ -76,7 +76,7 @@ export function AiAssistantWidget({
         setTimeout(() => { setMsgs(next); void send(q, 1); }, 12000);
         return;
       } else {
-        setMsgs([...next, { role: "assistant", content: `⚠️ ${json.error ?? "Jawab nahi mila"}` }]);
+        setMsgs([...next, { role: "assistant", content: `⚠️ ${json.error?.message ?? (typeof json.error === "string" ? json.error : "Jawab nahi mila")}`,
       }
     } catch {
       setMsgs([...next, { role: "assistant", content: "⚠️ Network error. Dobara try karein." }]);

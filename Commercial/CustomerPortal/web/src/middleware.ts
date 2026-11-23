@@ -13,14 +13,6 @@ const { auth } = NextAuth({
   secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
 });
 
-/**
- * /releases/* static assets (installer ZIP, catalog seed) are NOT a public customer
- * download surface — the only supported customer path is the authenticated
- * /api/releases/download/[id] route. The only exception is the server's own
- * same-origin fetch fallback (release-service reading the bundled ZIP when local
- * disk is unavailable in a serverless runtime), gated by a shared secret header
- * that customers/browsers never have.
- */
 function isInternalReleaseAssetFetch(req: { headers: Headers }, path: string): boolean {
   if (!path.startsWith("/releases/")) return false;
   const secret = (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "").trim();
@@ -71,11 +63,13 @@ export default auth((req) => {
     path === "/api/licenses/ready" ||
     path === "/api/licenses/installer-activate" ||
     path === "/api/notifications/trade-closed" ||
+    path.startsWith("/api/ai/") ||
     path === "/api/trading/sync" ||
+    path === "/api/trading/public" ||
+    path === "/api/trading/master-sync" ||
     path === "/api/partners/click" ||
     path === "/api/site-content/public" ||
     path.startsWith("/api/site-content/media/") ||
-    // Bundled installer ZIP + catalog seed (Setup still requires portal license key).
     path === "/releases/latest-stable.json" ||
     (path.startsWith("/releases/") && path.endsWith(".zip")) ||
     isInternalReleaseAssetFetch(req, path) ||
