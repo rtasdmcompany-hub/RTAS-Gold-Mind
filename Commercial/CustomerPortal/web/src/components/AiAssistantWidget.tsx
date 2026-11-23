@@ -35,7 +35,7 @@ export function AiAssistantWidget({
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [agentDown, setAgentDown] = useState(false);
+  const [conversationId, setConversationId] = useState<string | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([
     {
       role: "assistant",
@@ -49,7 +49,23 @@ export function AiAssistantWidget({
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs, busy, open]);
 
-  async function send(text?: string, attempt = 0) {
+  async function ensureConversation() {
+    if (conversationId) return conversationId;
+    const res = await fetch("/api/ai/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "start", surface, role, customerEmail }),
+    });
+    const json = await res.json();
+    if (!json.ok) throw new Error(json.error?.message || "START_FAILED");
+    const id = json.data?.conversation?.id as string;
+    setConversationId(id);
+    const welcome = json.data?.conversation?.messages?.[0];
+    if (welcome) setMsgs([{ role: welcome.role, content: welcome.content }]);
+    return id;
+  }
+
+  async function send(text?: string) {
     const q = (text ?? input).trim().slice(0, 2000);
     if (!q || busy) return;
     setInput("");
@@ -57,14 +73,15 @@ export function AiAssistantWidget({
     const next: Msg[] = [...msgs, { role: "user", content: q }];
     setMsgs(next);
     setBusy(true);
-    setAgentDown(false);
     try {
-      const res = await fetch("/api/ai/render-chat", {
+      const id = await ensureConversation();
+      const res = await fetch("/api/ai/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          action: "ask",
+          conversationId: id,
           message: q,
-          history: next.slice(-10).map((m) => ({ role: m.role, content: m.content })),
           surface,
           role,
           customerEmail,
@@ -72,23 +89,19 @@ export function AiAssistantWidget({
       });
       const json = await res.json();
       if (json.ok) {
-        setMsgs([...next, { role: "assistant", content: String(json.reply) }]);
-      } else if (json.retry && attempt === 0) {
-        setMsgs([...next, { role: "assistant", content: "⏳ " + (json.error ?? "Agent jaag raha hai… 30 second mein dobara koshish.") }]);
-        setTimeout(() => {
-          setMsgs(next);
-          void send(q, 1);
-        }, 30000);
-        return;
+        const reply = json.data?.reply?.content;
+        if (typeof reply === "string" && reply.trim()) {
+          setMsgs([...next, { role: "assistant", content: reply }]);
+        } else {
+          setMsgs([...next, { role: "assistant", content: "⚠️ Jawab nahi mila. Dobara try karein." }]);
+        }
       } else {
-        setAgentDown(true);
         const e = json.error;
         const msg =
           typeof e === "string" ? e : e && typeof e === "object" && "message" in e ? String(e.message) : "Jawab nahi mila";
         setMsgs([...next, { role: "assistant", content: `⚠️ ${msg}` }]);
       }
     } catch {
-      setAgentDown(true);
       setMsgs([...next, { role: "assistant", content: "⚠️ Network error. Dobara try karein." }]);
     } finally {
       setBusy(false);
@@ -143,7 +156,7 @@ export function AiAssistantWidget({
             <div>
               <strong style={{ color: "#f5c542" }}>{title}</strong>
               <div style={{ color: "#777", fontSize: 10, marginTop: 2 }}>
-                RTAS AI Agent · Support only · Not financial advice
+                RTAS AI · Support only · Not financial advice
               </div>
             </div>
             <button
@@ -162,20 +175,6 @@ export function AiAssistantWidget({
               ✕
             </button>
           </div>
-
-          {agentDown && (
-            <div
-              style={{
-                padding: "8px 14px",
-                background: "rgba(255,93,93,.1)",
-                borderBottom: "1px solid #2a2a38",
-                color: "#ff5d5d",
-                fontSize: 11,
-              }}
-            >
-              ⚠️ AI agent abhi available nahi hai. 30 second baad dobara try karein.
-            </div>
-          )}
 
           <div style={{ flex: 1, overflowY: "auto", padding: "12px 12px 4px" }}>
             {msgs.map((m, i) => (
@@ -225,7 +224,7 @@ export function AiAssistantWidget({
             <div ref={endRef} />
           </div>
 
-          {msgs.length <= 1 && !agentDown && (
+          {msgs.length <= 1 && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 12px 8px" }}>
               {QUICK.map((q) => (
                 <button
