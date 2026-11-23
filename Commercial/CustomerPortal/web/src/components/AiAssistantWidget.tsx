@@ -72,11 +72,11 @@ export function AiAssistantWidget({
       if (json.ok) {
         setMsgs([...next, { role: "assistant", content: String(json.reply) }]);
       } else if (json.retry && attempt === 0) {
-        setMsgs([...next, { role: "assistant", content: "⏳ Agent jaag raha hai… 12 second mein dobara koshish." }]);
+        setMsgs([...next, { role: "assistant", content: "⏳ " + (json.error ?? "Agent jaag raha hai… 30 second mein dobara koshish.") }]);
         setTimeout(() => {
           setMsgs(next);
           void send(q, 1);
-        }, 12000);
+        }, 30000); // 30 second wait for cold start
         return;
       } else {
         const e = json.error;

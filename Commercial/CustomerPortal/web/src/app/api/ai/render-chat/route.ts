@@ -3,9 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const AGENT = (process.env.RENDER_AGENT_URL ?? "https://rtas-ai-agent.onrender.com").replace(/\/+$/, "");
+const AGENT_BASE = (process.env.RENDER_AGENT_URL ?? "https://rtas-ai-agent.onrender.com").replace(/\/+$/, "");
 
-function pick(d: unknown): string {
+function pickReply(d: unknown): string {
   if (typeof d === "string") return d;
   if (!d || typeof d !== "object") return "";
   const obj = d as Record<string, unknown>;
@@ -23,7 +23,6 @@ function pick(d: unknown): string {
   return "";
 }
 
-/** POST /api/ai/render-chat  →  Render agent /chat */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
@@ -37,12 +36,13 @@ export async function POST(req: NextRequest) {
       ? (body.history as Record<string, unknown>[]) 
       : [];
 
+    // Try to reach the Render agent
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 55000);
-    let r: Response;
+    const timer = setTimeout(() => ctrl.abort(), 60000); // 60s timeout for cold start
     
+    let r: Response;
     try {
-      r = await fetch(`${AGENT}/chat`, {
+      r = await fetch(`${AGENT_BASE}/chat`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
         body: JSON.stringify({ message, history }),
@@ -58,23 +58,32 @@ export async function POST(req: NextRequest) {
     try {
       data = JSON.parse(raw);
     } catch {
-      /* plain text */
+      // plain text response
+    }
+
+    // If agent returns 404, it might be sleeping or endpoint changed
+    if (r.status === 404) {
+      return NextResponse.json({
+        ok: false,
+        error: "AI agent abhi available nahi hai. 30 second baad dobara try karein.",
+        retry: true,
+      }, { status: 503 });
     }
 
     if (!r.ok) {
       return NextResponse.json(
         {
           ok: false,
-          error: `Agent HTTP ${r.status}`,
+          error: `Agent error (${r.status})`,
           detail: typeof data === "string" ? data.slice(0, 200) : data,
         },
         { status: 502 }
       );
     }
 
-    const reply = pick(data).trim();
+    const reply = pickReply(data).trim();
     if (!reply) {
-      return NextResponse.json({ ok: false, error: "Agent ne khali jawab diya", raw: data }, { status: 502 });
+      return NextResponse.json({ ok: false, error: "Agent ne khali jawab diya" }, { status: 502 });
     }
 
     return NextResponse.json({ ok: true, reply });
@@ -85,17 +94,16 @@ export async function POST(req: NextRequest) {
       {
         ok: false,
         retry: true,
-        error: cold ? "Agent jaag raha hai (cold start)" : "Agent tak pohanch namumkin",
+        error: cold ? "AI agent jaag raha hai (cold start). 30 second baad dobara try karein." : "Agent tak pohanch namumkin",
       },
       { status: 503 }
     );
   }
 }
 
-/** GET /api/ai/render-chat → health check */
 export async function GET() {
   try {
-    const r = await fetch(`${AGENT}/openapi.json`, { cache: "no-store" });
+    const r = await fetch(`${AGENT_BASE}/openapi.json`, { cache: "no-store" });
     const j = await r.json().catch(() => null);
     return NextResponse.json({ ok: r.ok, agent: j });
   } catch {
