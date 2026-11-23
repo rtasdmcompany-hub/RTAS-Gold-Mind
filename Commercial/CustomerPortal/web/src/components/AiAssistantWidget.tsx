@@ -35,6 +35,7 @@ export function AiAssistantWidget({
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [agentDown, setAgentDown] = useState(false);
   const [msgs, setMsgs] = useState<Msg[]>([
     {
       role: "assistant",
@@ -56,6 +57,7 @@ export function AiAssistantWidget({
     const next: Msg[] = [...msgs, { role: "user", content: q }];
     setMsgs(next);
     setBusy(true);
+    setAgentDown(false);
     try {
       const res = await fetch("/api/ai/render-chat", {
         method: "POST",
@@ -76,15 +78,17 @@ export function AiAssistantWidget({
         setTimeout(() => {
           setMsgs(next);
           void send(q, 1);
-        }, 30000); // 30 second wait for cold start
+        }, 30000);
         return;
       } else {
+        setAgentDown(true);
         const e = json.error;
         const msg =
           typeof e === "string" ? e : e && typeof e === "object" && "message" in e ? String(e.message) : "Jawab nahi mila";
         setMsgs([...next, { role: "assistant", content: `⚠️ ${msg}` }]);
       }
     } catch {
+      setAgentDown(true);
       setMsgs([...next, { role: "assistant", content: "⚠️ Network error. Dobara try karein." }]);
     } finally {
       setBusy(false);
@@ -159,6 +163,20 @@ export function AiAssistantWidget({
             </button>
           </div>
 
+          {agentDown && (
+            <div
+              style={{
+                padding: "8px 14px",
+                background: "rgba(255,93,93,.1)",
+                borderBottom: "1px solid #2a2a38",
+                color: "#ff5d5d",
+                fontSize: 11,
+              }}
+            >
+              ⚠️ AI agent abhi available nahi hai. 30 second baad dobara try karein.
+            </div>
+          )}
+
           <div style={{ flex: 1, overflowY: "auto", padding: "12px 12px 4px" }}>
             {msgs.map((m, i) => (
               <div
@@ -207,7 +225,7 @@ export function AiAssistantWidget({
             <div ref={endRef} />
           </div>
 
-          {msgs.length <= 1 && (
+          {msgs.length <= 1 && !agentDown && (
             <div style={{ display: "flex", flexWrap: "wrap", gap: 6, padding: "0 12px 8px" }}>
               {QUICK.map((q) => (
                 <button

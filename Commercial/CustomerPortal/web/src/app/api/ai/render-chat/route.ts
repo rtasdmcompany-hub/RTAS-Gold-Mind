@@ -36,9 +36,8 @@ export async function POST(req: NextRequest) {
       ? (body.history as Record<string, unknown>[]) 
       : [];
 
-    // Try to reach the Render agent
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 60000); // 60s timeout for cold start
+    const timer = setTimeout(() => ctrl.abort(), 60000);
     
     let r: Response;
     try {
@@ -61,7 +60,6 @@ export async function POST(req: NextRequest) {
       // plain text response
     }
 
-    // If agent returns 404, it might be sleeping or endpoint changed
     if (r.status === 404) {
       return NextResponse.json({
         ok: false,
@@ -76,6 +74,7 @@ export async function POST(req: NextRequest) {
           ok: false,
           error: `Agent error (${r.status})`,
           detail: typeof data === "string" ? data.slice(0, 200) : data,
+          retry: r.status === 503 || r.status === 502,
         },
         { status: 502 }
       );
