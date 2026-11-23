@@ -9,6 +9,7 @@ import RiskPage from './pages/RiskPage';
 import DisclaimerPage from './pages/DisclaimerPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
+import AIChatWidget from './components/AIChatWidget';
 
 function App() {
   return (
@@ -26,6 +27,7 @@ function App() {
           <Route path="/terms" element={<TermsPage />} />
         </Routes>
         <Footer />
+        <AIChatWidget />
       </div>
     </Router>
   );
