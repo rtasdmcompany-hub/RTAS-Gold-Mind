@@ -9,7 +9,7 @@ import RiskPage from './pages/RiskPage';
 import DisclaimerPage from './pages/DisclaimerPage';
 import PrivacyPage from './pages/PrivacyPage';
 import TermsPage from './pages/TermsPage';
-import AIChatWidget from './components/AIChatWidget';
+import AIChatWidget from './components/AIChatWidget';  // SIRF EK BAAR
 
 function App() {
   return (

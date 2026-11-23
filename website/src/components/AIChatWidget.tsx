@@ -1,7 +1,10 @@
 import { useState } from "react";
 
+const AGENT_URL = "https://rtas-ai-agent.onrender.com/";
+
 export default function AIChatWidget() {
   const [open, setOpen] = useState(false);
+  const [loaded, setLoaded] = useState(false);
 
   return (
     <>
@@ -26,7 +29,7 @@ export default function AIChatWidget() {
           cursor: "pointer",
         }}
       >
-        ASK AI
+        ◆ ASK AI
       </button>
 
       {open && (
@@ -77,20 +80,39 @@ export default function AIChatWidget() {
                   fontSize: 15,
                 }}
               >
-                X
+                ✕
               </button>
             </div>
 
-            <iframe
-              src="https://rtas-ai-agent.onrender.com/"
-              title="RTAS AI Assistant"
-              style={{
-                width: "100%",
-                height: "100%",
-                border: "none",
-                background: "#0a0a0a",
-              }}
-            />
+            <div style={{ position: "relative", flex: 1 }}>
+              {!loaded && (
+                <div
+                  style={{
+                    position: "absolute",
+                    inset: 0,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    color: "#f5c542",
+                    fontSize: 14,
+                  }}
+                >
+                  AI load ho raha hai…
+                </div>
+              )}
+              <iframe
+                src={AGENT_URL}
+                title="RTAS AI Assistant"
+                onLoad={() => setLoaded(true)}
+                style={{
+                  width: "100%",
+                  height: "100%",
+                  border: "none",
+                  background: "#0a0a0a",
+                  opacity: loaded ? 1 : 0,
+                }}
+              />
+            </div>
           </div>
         </div>
       )}
