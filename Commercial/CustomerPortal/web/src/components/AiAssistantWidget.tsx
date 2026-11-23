@@ -73,10 +73,16 @@ export function AiAssistantWidget({
         setMsgs([...next, { role: "assistant", content: String(json.reply) }]);
       } else if (json.retry && attempt === 0) {
         setMsgs([...next, { role: "assistant", content: "⏳ Agent jaag raha hai… 12 second mein dobara koshish." }]);
-        setTimeout(() => { setMsgs(next); void send(q, 1); }, 12000);
+        setTimeout(() => {
+          setMsgs(next);
+          void send(q, 1);
+        }, 12000);
         return;
       } else {
-        setMsgs([...next, { role: "assistant", content: `⚠️ ${json.error?.message ?? (typeof json.error === "string" ? json.error : "Jawab nahi mila")}`,
+        const e = json.error;
+        const msg =
+          typeof e === "string" ? e : e && typeof e === "object" && "message" in e ? String(e.message) : "Jawab nahi mila";
+        setMsgs([...next, { role: "assistant", content: `⚠️ ${msg}` }]);
       }
     } catch {
       setMsgs([...next, { role: "assistant", content: "⚠️ Network error. Dobara try karein." }]);
@@ -90,7 +96,6 @@ export function AiAssistantWidget({
       {!open && (
         <button
           type="button"
-          className="btn btn-primary"
           onClick={() => setOpen(true)}
           style={{
             background: "linear-gradient(135deg,#f5c542,#c9971f)",
@@ -125,15 +130,15 @@ export function AiAssistantWidget({
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
+              justifyContent: "space-between",
               padding: "12px 14px",
               borderBottom: "1px solid #2a2a38",
             }}
           >
             <div>
               <strong style={{ color: "#f5c542" }}>{title}</strong>
-              <div style={{ fontSize: 10, color: "#777", marginTop: 2 }}>
+              <div style={{ color: "#777", fontSize: 10, marginTop: 2 }}>
                 RTAS AI Agent · Support only · Not financial advice
               </div>
             </div>
@@ -151,7 +156,7 @@ export function AiAssistantWidget({
               }}
             >
               ✕
-              </button>
+            </button>
           </div>
 
           <div style={{ flex: 1, overflowY: "auto", padding: "12px 12px 4px" }}>
@@ -167,21 +172,22 @@ export function AiAssistantWidget({
                 <div
                   style={{
                     maxWidth: "88%",
-                    padding: "8px 12px",
-                    borderRadius: 12,
                     fontSize: 13,
                     lineHeight: 1.6,
-                    whiteSpace: "pre-wrap",
-                    wordBreak: "break-word",
+                    padding: "8px 12px",
+                    borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
                     color: m.role === "user" ? "#ffe9a8" : "#f4f1e8",
                     background: m.role === "user" ? "rgba(245,197,66,.15)" : "#16161d",
                     border: `1px solid ${m.role === "user" ? "rgba(245,197,66,.35)" : "#2a2a38"}`,
+                    whiteSpace: "pre-wrap",
+                    wordBreak: "break-word",
                   }}
                 >
                   {m.content}
                 </div>
               </div>
             ))}
+
             {busy && (
               <div style={{ display: "flex", gap: 5, padding: "2px 6px 8px" }}>
                 {[0, 1, 2].map((i) => (
@@ -230,7 +236,9 @@ export function AiAssistantWidget({
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value.slice(0, 2000))}
-                onKeyDown={(e) => { if (e.key === "Enter") void send(); }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") void send();
+                }}
                 placeholder="Sawaal likhein…"
                 aria-label="AI message"
                 style={{
