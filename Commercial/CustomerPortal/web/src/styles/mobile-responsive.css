@@ -1,0 +1,91 @@
+/* ============================================
+   MOBILE RESPONSIVE OVERRIDES
+   ============================================ */
+
+/* --- Portal Sidebar: Mobile Drawer --- */
+@media (max-width: 767px) {
+  /* Hide desktop sidebar */
+  .portal-shell .nav {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    bottom: 0 !important;
+    width: 85% !important;
+    max-width: 300px !important;
+    background: #0a0a0a !important;
+    border-right: 1px solid #c9971f !important;
+    z-index: 200 !important;
+    padding: 16px !important;
+    overflow-y: auto !important;
+    transform: translateX(-100%) !important;
+    transition: transform 0.3s ease !important;
+  }
+
+  .portal-shell .nav.mobile-open {
+    transform: translateX(0) !important;
+  }
+
+  /* Mobile top bar */
+  .portal-mobile-topbar {
+    display: flex !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 100 !important;
+    background: #0a0a0a !important;
+    border-bottom: 1px solid #2a2a38 !important;
+    padding: 10px 14px !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+  }
+
+  /* Mobile overlay */
+  .portal-mobile-overlay {
+    display: block !important;
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.6) !important;
+    z-index: 150 !important;
+  }
+
+  /* Dashboard cards: single column */
+  .dash-grid,
+  .grid.grid-3 {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Admin cards: single column */
+  .admin-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Page title smaller */
+  .page-title {
+    font-size: 1.5rem !important;
+  }
+
+  .page-sub {
+    font-size: 0.85rem !important;
+  }
+
+  /* Cards padding */
+  .card {
+    padding: 12px !important;
+  }
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .dash-grid,
+  .grid.grid-3,
+  .admin-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+/* Hide mobile elements on desktop */
+@media (min-width: 768px) {
+  .portal-mobile-topbar,
+  .portal-mobile-overlay {
+    display: none !important;
+  }
+}
