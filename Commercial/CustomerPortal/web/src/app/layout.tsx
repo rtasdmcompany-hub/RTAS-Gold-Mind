@@ -1,6 +1,7 @@
 import type { Viewport } from "next";
 import { Cormorant_Garamond, Inter } from "next/font/google";
 import { brandRootMetadata } from "@/lib/brand-metadata";
+import { AiAssistantWidget } from "@/components/AiAssistantWidget";
 import "./globals.css";
 import "../styles/enterprise.css";
 
@@ -32,7 +33,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable}`}>
-      <body>{children}</body>
+      <body>
+        {children}
+        <AiAssistantWidget title="May I help you?" surface="website" role="anonymous" />
+      </body>
     </html>
   );
 }

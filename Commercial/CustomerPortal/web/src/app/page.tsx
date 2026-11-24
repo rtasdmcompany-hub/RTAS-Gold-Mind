@@ -123,8 +123,6 @@ export default function HomePage() {
           </ScrollReveal>
         </div>
       </section>
-
-      <AiAssistantWidget surface="website" role="anonymous" title="Ask AI" />
     </EnterpriseShell>
   );
 }
