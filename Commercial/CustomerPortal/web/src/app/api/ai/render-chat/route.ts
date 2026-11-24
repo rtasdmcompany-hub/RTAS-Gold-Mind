@@ -3,7 +3,9 @@ import { NextRequest, NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const AGENT_BASE = (process.env.RENDER_AGENT_URL ?? "https://rtas-ai-agent.onrender.com").replace(/\/+$/, "");
+const AGENT_BASE = (
+  process.env.RENDER_AGENT_URL ?? "https://rtas-ai-agent.onrender.com"
+).replace(/\/+$/, "");
 
 function pickReply(d: unknown): string {
   if (typeof d === "string") return d;
@@ -23,33 +25,50 @@ function pickReply(d: unknown): string {
   return "";
 }
 
+async function callAgent(body: Record<string, unknown>, ms: number): Promise<Response> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), ms);
+  try {
+    return await fetch(`${AGENT_BASE}/chat`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", Accept: "application/json" },
+      body: JSON.stringify(body),
+      signal: ctrl.signal,
+      cache: "no-store",
+    });
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/** POST /api/ai/render-chat → aapka RTAS AI agent */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
     const message = String(body.message ?? "").trim().slice(0, 2000);
-    
-    if (!message) {
+    if (!message)
       return NextResponse.json({ ok: false, error: "Message khali hai" }, { status: 400 });
-    }
 
-    const history = Array.isArray(body.history) 
-      ? (body.history as Record<string, unknown>[]) 
+    const history = Array.isArray(body.history)
+      ? (body.history as Record<string, unknown>[])
       : [];
+    const payload = { message, history };
 
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), 60000);
-    
+    // Pehli koshish (30s) — agent jaaga ho to foran jawab
     let r: Response;
     try {
-      r = await fetch(`${AGENT_BASE}/chat`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({ message, history }),
-        signal: ctrl.signal,
-        cache: "no-store",
-      });
-    } finally {
-      clearTimeout(timer);
+      r = await callAgent(payload, 30000);
+    } catch {
+      // Agent soya hoga — wake-up signal bhejo, phir 60s tak intezaar
+      await fetch(`${AGENT_BASE}/openapi.json`, { cache: "no-store" }).catch(() => {});
+      try {
+        r = await callAgent(payload, 60000);
+      } catch {
+        return NextResponse.json(
+          { ok: false, retry: true, error: "Agent jaag raha hai… thora sa intezaar karein." },
+          { status: 503 }
+        );
+      }
     }
 
     const raw = await r.text();
@@ -57,49 +76,34 @@ export async function POST(req: NextRequest) {
     try {
       data = JSON.parse(raw);
     } catch {
-      // plain text response
+      /* plain text */
     }
 
-    if (r.status === 404) {
-      return NextResponse.json({
-        ok: false,
-        error: "AI agent abhi available nahi hai. 30 second baad dobara try karein.",
-        retry: true,
-      }, { status: 503 });
-    }
-
-    if (!r.ok) {
+    if (!r.ok)
       return NextResponse.json(
         {
           ok: false,
-          error: `Agent error (${r.status})`,
+          retry: r.status === 502 || r.status === 503 || r.status === 404,
+          error: `Agent HTTP ${r.status}`,
           detail: typeof data === "string" ? data.slice(0, 200) : data,
-          retry: r.status === 503 || r.status === 502,
         },
         { status: 502 }
       );
-    }
 
     const reply = pickReply(data).trim();
-    if (!reply) {
+    if (!reply)
       return NextResponse.json({ ok: false, error: "Agent ne khali jawab diya" }, { status: 502 });
-    }
 
     return NextResponse.json({ ok: true, reply });
-  } catch (e: unknown) {
-    const err = e as Error;
-    const cold = err?.name === "AbortError";
+  } catch {
     return NextResponse.json(
-      {
-        ok: false,
-        retry: true,
-        error: cold ? "AI agent jaag raha hai (cold start). 30 second baad dobara try karein." : "Agent tak pohanch namumkin",
-      },
+      { ok: false, retry: true, error: "Agent tak pohanch namumkin" },
       { status: 503 }
     );
   }
 }
 
+/** GET /api/ai/render-chat → health check + wake-up ping */
 export async function GET() {
   try {
     const r = await fetch(`${AGENT_BASE}/openapi.json`, { cache: "no-store" });

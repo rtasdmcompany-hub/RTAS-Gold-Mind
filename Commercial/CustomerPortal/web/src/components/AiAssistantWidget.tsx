@@ -34,8 +34,6 @@ export function AiAssistantWidget({
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [input, setInput] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [conversationId, setConversationId] = useState<string | null>(null);
   const [msgs, setMsgs] = useState<Msg[]>([
     {
       role: "assistant",
@@ -49,39 +47,26 @@ export function AiAssistantWidget({
     endRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [msgs, busy, open]);
 
-  async function ensureConversation() {
-    if (conversationId) return conversationId;
-    const res = await fetch("/api/ai/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "start", surface, role, customerEmail }),
-    });
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error?.message || "START_FAILED");
-    const id = json.data?.conversation?.id as string;
-    setConversationId(id);
-    const welcome = json.data?.conversation?.messages?.[0];
-    if (welcome) setMsgs([{ role: welcome.role, content: welcome.content }]);
-    return id;
-  }
+  // Panel khulte hi agent ko warm-up karo (taake pehla sawaal 50s na ruke)
+  useEffect(() => {
+    if (!open) return;
+    void fetch("/api/ai/render-chat", { cache: "no-store" }).catch(() => {});
+  }, [open]);
 
-  async function send(text?: string) {
+  async function send(text?: string, attempt = 0) {
     const q = (text ?? input).trim().slice(0, 2000);
     if (!q || busy) return;
     setInput("");
-    setError(null);
     const next: Msg[] = [...msgs, { role: "user", content: q }];
     setMsgs(next);
     setBusy(true);
     try {
-      const id = await ensureConversation();
-      const res = await fetch("/api/ai/chat", {
+      const res = await fetch("/api/ai/render-chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          action: "ask",
-          conversationId: id,
           message: q,
+          history: next.slice(-10).map((m) => ({ role: m.role, content: m.content })),
           surface,
           role,
           customerEmail,
@@ -89,16 +74,28 @@ export function AiAssistantWidget({
       });
       const json = await res.json();
       if (json.ok) {
-        const reply = json.data?.reply?.content;
-        if (typeof reply === "string" && reply.trim()) {
-          setMsgs([...next, { role: "assistant", content: reply }]);
-        } else {
-          setMsgs([...next, { role: "assistant", content: "⚠️ Jawab nahi mila. Dobara try karein." }]);
-        }
+        setMsgs([...next, { role: "assistant", content: String(json.reply) }]);
+      } else if (json.retry && attempt === 0) {
+        setMsgs([
+          ...next,
+          {
+            role: "assistant",
+            content: "⏳ " + (typeof json.error === "string" ? json.error : "Agent jaag raha hai… 20 second mein dobara koshish."),
+          },
+        ]);
+        setTimeout(() => {
+          setMsgs(next);
+          void send(q, 1);
+        }, 20000);
+        return;
       } else {
         const e = json.error;
         const msg =
-          typeof e === "string" ? e : e && typeof e === "object" && "message" in e ? String(e.message) : "Jawab nahi mila";
+          typeof e === "string"
+            ? e
+            : e && typeof e === "object" && "message" in e
+            ? String(e.message)
+            : "Jawab nahi mila";
         setMsgs([...next, { role: "assistant", content: `⚠️ ${msg}` }]);
       }
     } catch {
@@ -156,7 +153,7 @@ export function AiAssistantWidget({
             <div>
               <strong style={{ color: "#f5c542" }}>{title}</strong>
               <div style={{ color: "#777", fontSize: 10, marginTop: 2 }}>
-                RTAS AI · Support only · Not financial advice
+                RTAS AI Agent · Support only · Not financial advice
               </div>
             </div>
             <button
@@ -192,10 +189,14 @@ export function AiAssistantWidget({
                     fontSize: 13,
                     lineHeight: 1.6,
                     padding: "8px 12px",
-                    borderRadius: m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
+                    borderRadius:
+                      m.role === "user" ? "14px 14px 4px 14px" : "14px 14px 14px 4px",
                     color: m.role === "user" ? "#ffe9a8" : "#f4f1e8",
-                    background: m.role === "user" ? "rgba(245,197,66,.15)" : "#16161d",
-                    border: `1px solid ${m.role === "user" ? "rgba(245,197,66,.35)" : "#2a2a38"}`,
+                    background:
+                      m.role === "user" ? "rgba(245,197,66,.15)" : "#16161d",
+                    border: `1px solid ${
+                      m.role === "user" ? "rgba(245,197,66,.35)" : "#2a2a38"
+                    }`,
                     whiteSpace: "pre-wrap",
                     wordBreak: "break-word",
                   }}
@@ -287,7 +288,6 @@ export function AiAssistantWidget({
                 Send
               </button>
             </div>
-            {error && <p style={{ color: "#ff5d5d", fontSize: 11, marginTop: 6 }}>{error}</p>}
           </div>
 
           <style>{`@keyframes tgmBounce{0%,80%,100%{transform:translateY(0);opacity:.4}40%{transform:translateY(-5px);opacity:1}}`}</style>
