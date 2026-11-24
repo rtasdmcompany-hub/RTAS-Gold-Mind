@@ -25,23 +25,29 @@ function pickReply(d: unknown): string {
   return "";
 }
 
-async function callAgent(body: Record<string, unknown>, ms: number): Promise<Response> {
+async function tryEndpoint(
+  path: string,
+  body: Record<string, unknown>,
+  ms: number
+): Promise<Response | null> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), ms);
   try {
-    return await fetch(`${AGENT_BASE}/chat`, {
+    const r = await fetch(`${AGENT_BASE}${path}`, {
       method: "POST",
       headers: { "Content-Type": "application/json", Accept: "application/json" },
       body: JSON.stringify(body),
       signal: ctrl.signal,
       cache: "no-store",
     });
+    return r;
+  } catch {
+    return null;
   } finally {
     clearTimeout(timer);
   }
 }
 
-/** POST /api/ai/render-chat → aapka RTAS AI agent */
 export async function POST(req: NextRequest) {
   try {
     const body = (await req.json().catch(() => ({}))) as Record<string, unknown>;
@@ -54,47 +60,58 @@ export async function POST(req: NextRequest) {
       : [];
     const payload = { message, history };
 
-    // Pehli koshish (30s) — agent jaaga ho to foran jawab
-    let r: Response;
-    try {
-      r = await callAgent(payload, 30000);
-    } catch {
-      // Agent soya hoga — wake-up signal bhejo, phir 60s tak intezaar
-      await fetch(`${AGENT_BASE}/openapi.json`, { cache: "no-store" }).catch(() => {});
-      try {
-        r = await callAgent(payload, 60000);
-      } catch {
-        return NextResponse.json(
-          { ok: false, retry: true, error: "Agent jaag raha hai… thora sa intezaar karein." },
-          { status: 503 }
-        );
+    // Try multiple possible endpoints in order
+    const endpoints = ["/chat", "/api/chat", "/ask", "/api/ask", "/v1/chat/completions"];
+    let lastError = "";
+    let lastStatus = 0;
+
+    for (const ep of endpoints) {
+      const r = await tryEndpoint(ep, payload, 30000);
+      if (!r) {
+        lastError = "timeout";
+        continue;
       }
+      lastStatus = r.status;
+      // 200-299 = success
+      if (r.ok) {
+        const raw = await r.text();
+        let data: unknown = raw;
+        try { data = JSON.parse(raw); } catch { /* plain text */ }
+        const reply = pickReply(data).trim();
+        if (reply) return NextResponse.json({ ok: true, reply });
+        lastError = "empty reply";
+        continue;
+      }
+      // 404 = endpoint doesn't exist, try next
+      if (r.status === 404) {
+        lastError = `404 on ${ep}`;
+        continue;
+      }
+      // Other error
+      lastError = `HTTP ${r.status} on ${ep}`;
     }
 
-    const raw = await r.text();
-    let data: unknown = raw;
-    try {
-      data = JSON.parse(raw);
-    } catch {
-      /* plain text */
+    // All endpoints failed — try wake-up then retry once
+    await fetch(`${AGENT_BASE}/`, { cache: "no-store" }).catch(() => {});
+    await new Promise((res) => setTimeout(res, 8000));
+
+    const r2 = await tryEndpoint("/chat", payload, 60000);
+    if (r2 && r2.ok) {
+      const raw = await r2.text();
+      let data: unknown = raw;
+      try { data = JSON.parse(raw); } catch { /* plain text */ }
+      const reply = pickReply(data).trim();
+      if (reply) return NextResponse.json({ ok: true, reply });
     }
 
-    if (!r.ok)
-      return NextResponse.json(
-        {
-          ok: false,
-          retry: r.status === 502 || r.status === 503 || r.status === 404,
-          error: `Agent HTTP ${r.status}`,
-          detail: typeof data === "string" ? data.slice(0, 200) : data,
-        },
-        { status: 502 }
-      );
-
-    const reply = pickReply(data).trim();
-    if (!reply)
-      return NextResponse.json({ ok: false, error: "Agent ne khali jawab diya" }, { status: 502 });
-
-    return NextResponse.json({ ok: true, reply });
+    return NextResponse.json(
+      {
+        ok: false,
+        retry: true,
+        error: `Agent jawab nahi de raha (last: ${lastError || lastStatus})`,
+      },
+      { status: 502 }
+    );
   } catch {
     return NextResponse.json(
       { ok: false, retry: true, error: "Agent tak pohanch namumkin" },
@@ -103,13 +120,11 @@ export async function POST(req: NextRequest) {
   }
 }
 
-/** GET /api/ai/render-chat → health check + wake-up ping */
 export async function GET() {
   try {
-    const r = await fetch(`${AGENT_BASE}/openapi.json`, { cache: "no-store" });
-    const j = await r.json().catch(() => null);
-    return NextResponse.json({ ok: r.ok, agent: j });
+    const r = await fetch(`${AGENT_BASE}/`, { cache: "no-store" });
+    return NextResponse.json({ ok: r.ok, status: r.status });
   } catch {
-    return NextResponse.json({ ok: false, agent: null }, { status: 503 });
+    return NextResponse.json({ ok: false }, { status: 503 });
   }
 }
