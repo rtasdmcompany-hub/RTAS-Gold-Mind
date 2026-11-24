@@ -1,9 +1,9 @@
 {
-  "name": "THE GOLD MIND AI v2.0 PROFESSIONAL",
-  "short_name": "THE GOLD MIND",
-  "description": "THE GOLD MIND AI v2.0 PROFESSIONAL \u2014 Customer Portal, licensing, downloads, and certified automated trading software. Trading involves risk of loss.",
+  "name": "RTAS Gold Mind AI Professional",
+  "short_name": "Gold Mind",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#050505",
-  "theme_color": "#050505"
+  "background_color": "#0a0a0f",
+  "theme_color": "#f5c542",
+  "icons": []
 }
