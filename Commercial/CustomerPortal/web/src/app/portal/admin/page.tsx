@@ -17,6 +17,11 @@ export default function AdminHub() {
   return (
     <>
       <style>{`
+        .admin-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+        }
         .admin-card {
           text-decoration: none;
           display: block;
@@ -25,6 +30,12 @@ export default function AdminHub() {
         .admin-card:hover {
           transform: translateY(-4px);
           box-shadow: 0 8px 24px rgba(245, 197, 66, 0.18);
+        }
+        @media (max-width: 900px) {
+          .admin-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+          .admin-grid { grid-template-columns: 1fr; }
         }
       `}</style>
 
@@ -35,7 +46,7 @@ export default function AdminHub() {
         </p>
       </header>
 
-      <div className="grid grid-3">
+      <div className="admin-grid">
         {SECTIONS.map((s) => (
           <Link key={s.href} href={s.href} className="card admin-card">
             <h3 style={{ color: "#f5c542", marginBottom: 8 }}>{s.label}</h3>

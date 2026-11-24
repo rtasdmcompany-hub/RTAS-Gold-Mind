@@ -14,7 +14,6 @@ import Link from "next/link";
 import { brand } from "@/lib/brand";
 import { product } from "@/lib/product";
 
-// ✅ Proper type definition to avoid 'any'
 type DashboardSub = {
   status?: string;
   plan?: string;
@@ -32,13 +31,10 @@ export default async function DashboardPage() {
   
   const licenses = email ? await listLicensesForCustomer(email) : [];
   const devices = email ? listDevicesForCustomer(email) : [];
-  
-  // ✅ SAFE TYPE CASTING: No 'any' used
   const subs = email ? (listSubscriptionsForCustomer(email) as DashboardSub[]) : [];
   const billing = email ? getBillingSummary(email) : { invoices: [], payments: [], subscriptions: [], emails: [] };
   const tickets = email ? listSupportTickets({ customerEmail: email }) : [];
   
-  // ✅ UPDATED: Prioritize active, then grace, then pending, then any license
   const primaryLicense = licenses.find((l) => l.status === "active") || 
                          licenses.find((l) => l.status === "grace") || 
                          licenses.find((l) => l.status === "pending") || 
@@ -46,7 +42,6 @@ export default async function DashboardPage() {
 
   const activeDevices = devices.filter((d) => d.status === "active").length;
   
-  // ✅ UPDATED: Safe subscription fallback without 'any'
   const allSubs = [...subs, ...(billing.subscriptions as DashboardSub[])];
   const primarySub = allSubs.find((s) => s.status === "active" || s.status === "trialing" || s.status === "pending") || allSubs[0];
 
@@ -54,6 +49,21 @@ export default async function DashboardPage() {
 
   return (
     <>
+      <style>{`
+        .dash-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+          margin-bottom: 16px;
+        }
+        @media (max-width: 900px) {
+          .dash-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (max-width: 600px) {
+          .dash-grid { grid-template-columns: 1fr; }
+        }
+      `}</style>
+
       <header style={{ marginBottom: 20 }}>
         <h1 className="page-title">Dashboard</h1>
         <p className="page-sub">
@@ -62,12 +72,10 @@ export default async function DashboardPage() {
         </p>
       </header>
 
-      <div className="grid grid-3" style={{ marginBottom: 16 }}>
+      <div className="dash-grid">
         <div className="card">
           <h3>Customer</h3>
-          <div className="value" style={{ fontSize: 18 }}>
-            {name}
-          </div>
+          <div className="value" style={{ fontSize: 18 }}>{name}</div>
           <div className="meta">{email || "Not signed in"}</div>
         </div>
         <div className="card">
@@ -91,26 +99,18 @@ export default async function DashboardPage() {
             {primaryLicense?.keyMasked ? (
               <Link href="/portal/licenses" style={{ textDecoration: "underline" }}>{primaryLicense.keyMasked}</Link>
             ) : (
-              <>
-                — <Link href="/portal/licenses">My Licenses</Link>
-              </>
+              <>— <Link href="/portal/licenses">My Licenses</Link></>
             )}
           </div>
         </div>
         <div className="card">
           <h3>Product Edition</h3>
-          <div className="value" style={{ fontSize: 16 }}>
-            {brand.productName}
-          </div>
+          <div className="value" style={{ fontSize: 16 }}>{brand.productName}</div>
         </div>
         <div className="card">
           <h3>Devices</h3>
-          <div className="value">
-            {activeDevices} / {primaryLicense?.seatsMax ?? "—"}
-          </div>
-          <div className="meta">
-            <Link href="/portal/devices">Manage devices</Link>
-          </div>
+          <div className="value">{activeDevices} / {primaryLicense?.seatsMax ?? "—"}</div>
+          <div className="meta"><Link href="/portal/devices">Manage devices</Link></div>
         </div>
         <div className="card">
           <h3>Last validated</h3>
@@ -130,9 +130,7 @@ export default async function DashboardPage() {
         <div className="card">
           <h3>Open support tickets</h3>
           <div className="value">{openTickets}</div>
-          <div className="meta">
-            <Link href="/portal/support">Support</Link>
-          </div>
+          <div className="meta"><Link href="/portal/support">Support</Link></div>
         </div>
         <div className="card">
           <h3>Quick links</h3>
