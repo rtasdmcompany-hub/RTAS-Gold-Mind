@@ -1,6 +1,5 @@
 import { auth } from "@/auth";
 import { StatusBadge } from "@/components/StatusBadge";
-import { AiAssistantWidget } from "@/components/AiAssistantWidget";
 import { AiCommandCenterPreview } from "@/components/AiCommandCenterPreview";
 import { ensureSeedData } from "@/server/licensing/seed";
 import { listLicensesForCustomer } from "@/server/licensing/license-service";
@@ -15,7 +14,7 @@ import Link from "next/link";
 import { brand } from "@/lib/brand";
 import { product } from "@/lib/product";
 
-// ✅ NEW: Proper type definition to avoid 'any'
+// ✅ Proper type definition to avoid 'any'
 type DashboardSub = {
   status?: string;
   plan?: string;
@@ -145,13 +144,6 @@ export default async function DashboardPage() {
       </div>
 
       <AiCommandCenterPreview />
-
-      <AiAssistantWidget
-        surface="customer_portal"
-        role="customer"
-        customerEmail={email || undefined}
-        title="AI Support"
-      />
     </>
   );
 }

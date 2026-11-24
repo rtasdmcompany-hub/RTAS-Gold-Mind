@@ -2,18 +2,10 @@ export const customerNav = [
   { href: "/portal", label: "Dashboard" },
   { href: "/portal/licenses", label: "My Licenses" },
   { href: "/portal/downloads", label: "Downloads" },
-  { href: "/portal/updates", label: "Updates" },
-  { href: "/portal/billing", label: "Billing" },
-  { href: "/portal/subscriptions", label: "Subscriptions" },
+  { href: "/portal/billing", label: "Billing & Invoices" },
   { href: "/portal/devices", label: "Devices" },
-  { href: "/portal/trading", label: "Trading" }, // ✅ YE NAYA ADD KIYA GAYA HAI
-  { href: "/portal/invoices", label: "Invoices" },
-  { href: "/portal/orders", label: "Orders" },
   { href: "/portal/support", label: "Support" },
-  { href: "/portal/feedback", label: "Feedback" },
-  { href: "/portal/knowledge-base", label: "Knowledge Base" },
-  { href: "/portal/announcements", label: "Announcements" },
-  { href: "/portal/account", label: "Account Settings" },
+  { href: "/portal/account", label: "Account" },
   { href: "/portal/security", label: "Security" },
 ] as const;
 
