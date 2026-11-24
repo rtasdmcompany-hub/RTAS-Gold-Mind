@@ -16,6 +16,18 @@ const SECTIONS = [
 export default function AdminHub() {
   return (
     <>
+      <style>{`
+        .admin-card {
+          text-decoration: none;
+          display: block;
+          transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .admin-card:hover {
+          transform: translateY(-4px);
+          box-shadow: 0 8px 24px rgba(245, 197, 66, 0.18);
+        }
+      `}</style>
+
       <header style={{ marginBottom: 24 }}>
         <h1 className="page-title">Operations Hub</h1>
         <p className="page-sub">
@@ -25,14 +37,7 @@ export default function AdminHub() {
 
       <div className="grid grid-3">
         {SECTIONS.map((s) => (
-          <Link 
-            key={s.href} 
-            href={s.href} 
-            className="card" 
-            style={{ textDecoration: "none", transition: "transform 0.2s" }}
-            onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-4px)")}
-            onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
-          >
+          <Link key={s.href} href={s.href} className="card admin-card">
             <h3 style={{ color: "#f5c542", marginBottom: 8 }}>{s.label}</h3>
             <div className="meta" style={{ color: "#9a95a8", fontSize: 13 }}>{s.desc}</div>
           </Link>
