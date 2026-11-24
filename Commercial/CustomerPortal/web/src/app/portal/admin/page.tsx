@@ -1,122 +1,42 @@
-import { auth } from "@/auth";
-import { StatusBadge } from "@/components/StatusBadge";
-import { redirect } from "next/navigation";
 import Link from "next/link";
-import { canAccessAdminConsole, hasPermission } from "@/server/admin/roles";
-import { getEnterpriseDashboardWithHealth } from "@/server/admin/ops";
-import { ensureDemoTickets } from "@/server/admin/support-store";
-import { ensureSeedData } from "@/server/licensing/seed";
-import { brand } from "@/lib/brand";
 
-export default async function AdminOperationsHub() {
-  ensureSeedData();
-  ensureDemoTickets();
-  const session = await auth();
-  const role = (session?.user as { role?: string } | undefined)?.role;
-  if (!canAccessAdminConsole(role)) redirect("/portal");
+const SECTIONS = [
+  { href: "/portal/admin/customers", label: "Customers", desc: "Accounts, status, search" },
+  { href: "/portal/admin/licenses", label: "Licenses", desc: "Issue, revoke, validate keys" },
+  { href: "/portal/admin/billing", label: "Billing", desc: "Invoices, payments, refunds" },
+  { href: "/portal/admin/support", label: "Support", desc: "Tickets and replies" },
+  { href: "/portal/admin/releases", label: "Releases", desc: "Versions and installers" },
+  { href: "/portal/admin/market", label: "MQL5 Market", desc: "Market listing & compliance" },
+  { href: "/portal/admin/site-content", label: "Site Content", desc: "Website copy, media, videos" },
+  { href: "/portal/admin/audit", label: "Audit", desc: "Admin action log" },
+  { href: "/portal/admin/security", label: "Security", desc: "Sessions and threats" },
+  { href: "/portal/admin/roles", label: "Roles", desc: "Staff roles & permissions" },
+];
 
-  const dash = await getEnterpriseDashboardWithHealth();
-
+export default function AdminHub() {
   return (
     <>
-      <header style={{ marginBottom: 20 }}>
-        <h1 className="page-title">Enterprise Operations Hub</h1>
+      <header style={{ marginBottom: 24 }}>
+        <h1 className="page-title">Operations Hub</h1>
         <p className="page-sub">
-          {brand.brandName} commercial operations center — customers · licenses · revenue · support · health. Never touches Trading
-          Engine.
+          Everything you need to run the business — nothing you don&apos;t.
         </p>
       </header>
 
-      <div className="grid grid-3" style={{ marginBottom: 16 }}>
-        <div className="card">
-          <h3>Active Customers</h3>
-          <div className="value">{dash.activeCustomers}</div>
-        </div>
-        <div className="card">
-          <h3>Active Licenses</h3>
-          <div className="value">{dash.activeLicenses}</div>
-        </div>
-        <div className="card">
-          <h3>Subscriptions</h3>
-          <div className="value">{dash.subscriptions}</div>
-        </div>
-        <div className="card">
-          <h3>Revenue Overview</h3>
-          <div className="value" style={{ fontSize: 18 }}>
-            {dash.revenueOverview}
-          </div>
-        </div>
-        <div className="card">
-          <h3>Daily Activations</h3>
-          <div className="value">{dash.dailyActivations}</div>
-        </div>
-        <div className="card">
-          <h3>New Registrations</h3>
-          <div className="value">{dash.newRegistrations}</div>
-        </div>
-        <div className="card">
-          <h3>Support Tickets</h3>
-          <div className="value">{dash.supportTicketsOpen}</div>
-          <div className="meta">Open / pending · {dash.supportTicketsTotal} total</div>
-        </div>
-        <div className="card">
-          <h3>Latest Release</h3>
-          <div className="value" style={{ fontSize: 18 }}>
-            {dash.latestRelease?.version || "—"}
-          </div>
-          <div className="meta">
-            {dash.latestRelease ? `${dash.latestRelease.channel} · build ${dash.latestRelease.build}` : "—"}
-          </div>
-        </div>
-        <div className="card">
-          <h3>System Health</h3>
-          <div className="value" style={{ fontSize: 18 }}>
-            <StatusBadge status={dash.systemHealth} />
-          </div>
-          <div className="meta">Platform: {dash.platformStatus}</div>
-        </div>
-      </div>
-
-      <h2 style={{ fontSize: 16 }}>Platform status</h2>
-      <div className="table-wrap" style={{ marginBottom: 20 }}>
-        <table className="data">
-          <thead>
-            <tr>
-              <th>Service</th>
-              <th>Status</th>
-              <th>Latency</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dash.healthServices.map((s) => (
-              <tr key={s.id}>
-                <td>{s.name}</td>
-                <td>
-                  <StatusBadge status={s.status} />
-                </td>
-                <td>{s.latencyMs} ms</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
-        {hasPermission(role, "admin.customers.read") && (
-          <Link className="btn btn-primary" href="/portal/admin/customers">
-            Customer Management
+      <div className="grid grid-3">
+        {SECTIONS.map((s) => (
+          <Link 
+            key={s.href} 
+            href={s.href} 
+            className="card" 
+            style={{ textDecoration: "none", transition: "transform 0.2s" }}
+            onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-4px)")}
+            onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+          >
+            <h3 style={{ color: "#f5c542", marginBottom: 8 }}>{s.label}</h3>
+            <div className="meta" style={{ color: "#9a95a8", fontSize: 13 }}>{s.desc}</div>
           </Link>
-        )}
-        {hasPermission(role, "admin.bi.read") && (
-          <Link className="btn" href="/portal/admin/bi">
-            Business Intelligence
-          </Link>
-        )}
-        {hasPermission(role, "admin.audit.read") && (
-          <Link className="btn" href="/portal/admin/audit">
-            Audit Center
-          </Link>
-        )}
+        ))}
       </div>
     </>
   );
