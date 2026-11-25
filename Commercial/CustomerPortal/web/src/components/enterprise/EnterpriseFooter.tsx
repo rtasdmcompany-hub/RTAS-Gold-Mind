@@ -1,165 +1,75 @@
-"use client";
-
-import Image from "next/image";
 import Link from "next/link";
-import { brand } from "@/lib/brand";
-import { useSiteContent } from "./SiteContentProvider";
-
-const FOOTER = {
-  product: [
-    { href: "/about", label: "About" },
-    { href: "/pricing", label: "Pricing" },
-    { href: "/technology", label: "Technology" },
-    { href: "/security", label: "Security" },
-    { href: "/docs", label: "Documentation" },
-  ],
-  portal: [
-    { href: "/login", label: "User Portal" },
-    { href: "/portal/downloads", label: "Download" },
-    { href: "/contact", label: "Contact" },
-  ],
-  legal: [
-    { href: "/privacy", label: "Privacy" },
-    { href: "/terms", label: "Terms" },
-    { href: "/eula", label: "EULA" },
-    { href: "/cookies", label: "Cookies" },
-    { href: "/refund", label: "Refunds" },
-    { href: "/disclaimer", label: "Disclaimer" },
-    { href: "/risk", label: "Risk Disclosure" },
-  ],
-};
-
-function MediaImage({
-  src,
-  alt,
-  width,
-  height,
-  className,
-}: {
-  src: string;
-  alt: string;
-  width: number;
-  height: number;
-  className?: string;
-}) {
-  const remote = /^https?:\/\//i.test(src);
-  return (
-    <Image
-      src={src}
-      alt={alt}
-      width={width}
-      height={height}
-      className={className}
-      unoptimized={remote || src.startsWith("/api/site-content/media/")}
-    />
-  );
-}
+import { BrandLogo } from "@/components/BrandLogo";
 
 export function EnterpriseFooter() {
-  const site = useSiteContent();
-  const social = [
-    brand.social.x || brand.social.twitter
-      ? { href: brand.social.x || brand.social.twitter, label: "X" }
-      : null,
-    brand.social.linkedin ? { href: brand.social.linkedin, label: "LinkedIn" } : null,
-    brand.social.youtube ? { href: brand.social.youtube, label: "YouTube" } : null,
-    brand.social.facebook ? { href: brand.social.facebook, label: "Facebook" } : null,
-  ].filter(Boolean) as { href: string; label: string }[];
-
   return (
-    <footer className="e-footer e-footer--compact">
-      <div className="e-container">
-        <div className="e-footer-grid e-footer-grid--compact">
-          <div className="e-footer-brand">
-            <div
-              className="e-footer-logos e-footer-logos--brand"
-              aria-label={`${site.header.brandName || brand.brandName}, RTAS Group, and RTAS Digital logos`}
-            >
-              <div className="e-footer-logo-cell">
-                <MediaImage
-                  src={site.logos.footerGoldMind || brand.assets.footer}
-                  alt={`${site.header.brandName || brand.brandName} ${brand.tagline}`}
-                  width={88}
-                  height={88}
-                  className="e-footer-logo-img"
-                />
-              </div>
-              <div className="e-footer-logo-cell">
-                <MediaImage
-                  src={site.logos.footerRtasGroup || brand.assets.footerRtasGroup}
-                  alt="RTAS Group of Companies"
-                  width={88}
-                  height={88}
-                  className="e-footer-logo-img"
-                />
-              </div>
-              <div className="e-footer-logo-cell">
-                <MediaImage
-                  src={site.logos.footerRtasDigital || brand.assets.footerRtasDigital}
-                  alt="RTAS Digital Marketing Company"
-                  width={88}
-                  height={88}
-                  className="e-footer-logo-img"
-                />
-              </div>
-            </div>
-            <p className="e-footer-desc">{site.footer.description}</p>
-            <div className="e-footer-admin-wrap">
-              <Link href="/admin" className="e-footer-admin-btn e-nav-cta">
-                Admin Only
-              </Link>
-            </div>
-            {social.length > 0 ? (
-              <ul
-                className="e-footer-social"
-                style={{ listStyle: "none", padding: 0, display: "flex", gap: 12, marginTop: 8 }}
-              >
-                {social.map((s) => (
-                  <li key={s.href}>
-                    <a href={s.href} rel="noopener noreferrer" target="_blank">
-                      {s.label}
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : null}
-          </div>
-          <div className="e-footer-col">
-            <h4>Product</h4>
-            <ul>
-              {FOOTER.product.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href}>{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="e-footer-col">
-            <h4>Portal</h4>
-            <ul>
-              {FOOTER.portal.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href}>{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="e-footer-col">
-            <h4>Legal</h4>
-            <ul>
-              {FOOTER.legal.map((l) => (
-                <li key={l.href}>
-                  <Link href={l.href}>{l.label}</Link>
-                </li>
-              ))}
-            </ul>
-          </div>
+    <footer
+      style={{
+        background: "#0a0a0a",
+        borderTop: "1px solid #2a2a38",
+        padding: "32px 24px 20px",
+      }}
+    >
+      <div
+        style={{
+          maxWidth: 1200,
+          margin: "0 auto",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: 20,
+        }}
+      >
+        {/* Sirf 1 Gold Mind logo */}
+        <BrandLogo variant="footer" href="/" />
+
+        {/* Compact links — sirf 4 zaroori */}
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: 20,
+          }}
+        >
+          <Link
+            href="/privacy"
+            style={{ color: "#9a95a8", textDecoration: "none", fontSize: 13 }}
+          >
+            Privacy
+          </Link>
+          <Link
+            href="/terms"
+            style={{ color: "#9a95a8", textDecoration: "none", fontSize: 13 }}
+          >
+            Terms
+          </Link>
+          <Link
+            href="/contact"
+            style={{ color: "#9a95a8", textDecoration: "none", fontSize: 13 }}
+          >
+            Contact
+          </Link>
+          <Link
+            href="/refund"
+            style={{ color: "#9a95a8", textDecoration: "none", fontSize: 13 }}
+          >
+            Refunds
+          </Link>
         </div>
 
-        <hr className="e-divider-glass" />
-        <div className="e-footer-bottom e-footer-bottom--legal">
-          <span className="e-footer-copy">{site.footer.copyrightLine}</span>
-          <span className="e-footer-risk">{site.footer.riskLine}</span>
+        {/* Copyright */}
+        <div
+          style={{
+            color: "#555",
+            fontSize: 11,
+            textAlign: "center",
+            borderTop: "1px solid #1a1a24",
+            paddingTop: 16,
+            width: "100%",
+          }}
+        >
+          © {new Date().getFullYear()} RTAS Gold Mind AI Professional. All rights reserved.
         </div>
       </div>
     </footer>

@@ -14,47 +14,54 @@ export function PortalUserBar({
   image?: string | null;
   role?: string;
 }) {
+  // Sirf first name lo
+  const firstName = (name || "User").split(/\s+/)[0];
+
   return (
     <div
       style={{
         display: "flex",
         alignItems: "center",
         justifyContent: "space-between",
-        gap: 16,
-        padding: "12px 24px",
+        gap: 12,
+        padding: "10px 20px",
         background: "#0a0a0a",
         borderBottom: "1px solid #2a2a38",
-        flexWrap: "wrap",
       }}
     >
-      {/* Left: User info */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flex: 1, minWidth: 200 }}>
-        <UserAvatar name={name} image={image} size={40} />
-        <div style={{ display: "flex", flexDirection: "column" }}>
-          <span style={{ color: "#f4f1e8", fontSize: 14, fontWeight: 600 }}>
-            {name || "Customer"}
-          </span>
-          <span style={{ color: "#f5c542", fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>
-            {role || "CUSTOMER"}
-          </span>
-        </div>
+      {/* Left: Avatar + First Name */}
+      <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+        <UserAvatar name={name} image={image} size={32} />
+        <span
+          style={{
+            color: "#f4f1e8",
+            fontSize: 14,
+            fontWeight: 600,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {firstName}
+        </span>
       </div>
 
-      {/* Right: Actions */}
-      <div style={{ display: "flex", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+      {/* Right: Icon Buttons */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Link
           href="/"
+          title="Website Home"
+          aria-label="Website Home"
           style={{
-            padding: "8px 16px",
-            borderRadius: 6,
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            display: "grid",
+            placeItems: "center",
             textDecoration: "none",
             color: "#d4d4d8",
             background: "transparent",
             border: "1px solid #2a2a38",
-            fontSize: 13,
-            fontWeight: 500,
+            fontSize: 16,
             transition: "all 0.2s ease",
-            whiteSpace: "nowrap",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.borderColor = "#f5c542";
@@ -65,21 +72,24 @@ export function PortalUserBar({
             e.currentTarget.style.color = "#d4d4d8";
           }}
         >
-          ← Website Home
+          🏠
         </Link>
 
         <Link
           href="/api/auth/signout"
+          title="Sign out"
+          aria-label="Sign out"
           style={{
-            padding: "8px 16px",
-            borderRadius: 6,
+            width: 36,
+            height: 36,
+            borderRadius: 8,
+            display: "grid",
+            placeItems: "center",
             textDecoration: "none",
             color: "#0a0a0a",
             background: "linear-gradient(135deg, #f5c542, #c9971f)",
-            fontSize: 13,
-            fontWeight: 700,
+            fontSize: 16,
             transition: "all 0.2s ease",
-            whiteSpace: "nowrap",
           }}
           onMouseEnter={(e) => {
             e.currentTarget.style.transform = "translateY(-1px)";
@@ -90,7 +100,7 @@ export function PortalUserBar({
             e.currentTarget.style.boxShadow = "none";
           }}
         >
-          Sign out
+          ⏻
         </Link>
       </div>
     </div>
