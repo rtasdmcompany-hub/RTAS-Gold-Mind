@@ -1,118 +1,30 @@
-import NextAuth from "next-auth";
+import { auth } from "@/auth";
 import { NextResponse } from "next/server";
-import { authConfig } from "@/auth.config";
-import { applySecurityHeaders, checkCsrf, enforceHttps } from "@/server/cloud/security-headers";
-import { RELEASE_INTERNAL_FETCH_HEADER } from "@/server/releases/internal-fetch";
+import type { NextRequest } from "next/server";
 
-/**
- * Edge middleware — session gate only (no Node crypto / accounts store).
- * Full Google + credentials providers live in auth.ts (Node runtime).
- */
-const { auth } = NextAuth({
-  ...authConfig,
-  secret: process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET,
-});
+// Ye routes bina login ke nahi khulne chahiye
+const PROTECTED_ROUTES = ["/portal"];
 
-function isInternalReleaseAssetFetch(req: { headers: Headers }, path: string): boolean {
-  if (!path.startsWith("/releases/")) return false;
-  const secret = (process.env.AUTH_SECRET || process.env.NEXTAUTH_SECRET || "").trim();
-  if (!secret) return false;
-  return req.headers.get(RELEASE_INTERNAL_FETCH_HEADER) === secret;
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Portal routes ko protect karo
+  const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route));
+
+  if (isProtected) {
+    const session = await auth();
+
+    // Agar session nahi hai to login par redirect karo
+    if (!session?.user) {
+      const loginUrl = new URL("/login", request.url);
+      loginUrl.searchParams.set("callbackUrl", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
+  }
+
+  return NextResponse.next();
 }
 
-export default auth((req) => {
-  const httpsRedirect = enforceHttps(req);
-  if (httpsRedirect) return applySecurityHeaders(httpsRedirect);
-
-  const path = req.nextUrl.pathname;
-  const isLoggedIn = !!(req.auth?.user?.email || req.auth?.user?.id);
-
-  const isPublic =
-    path === "/" ||
-    path === "/about" ||
-    path === "/company" ||
-    path === "/technology" ||
-    path === "/infrastructure" ||
-    path === "/security" ||
-    path === "/login" ||
-    path === "/admin" ||
-    path === "/register" ||
-    path === "/verify-email" ||
-    path === "/resend-verification" ||
-    path === "/forgot-password" ||
-    path === "/reset-password" ||
-    path === "/pricing" ||
-    path === "/docs" ||
-    path === "/contact" ||
-    path === "/privacy" ||
-    path === "/terms" ||
-    path === "/cookies" ||
-    path === "/refund" ||
-    path === "/risk" ||
-    path.startsWith("/partners") ||
-    path.startsWith("/developers") ||
-    path.startsWith("/api/auth") ||
-    path.startsWith("/api/health") ||
-    path === "/api/v1/health" ||
-    path === "/api/mobile/health" ||
-    path.startsWith("/api/contact") ||
-    path.startsWith("/api/billing/webhooks") ||
-    path.startsWith("/api/releases/check") ||
-    path.startsWith("/api/releases/download") ||
-    path.startsWith("/api/releases/report") ||
-    path === "/api/licenses/ready" ||
-    path === "/api/licenses/installer-activate" ||
-    path === "/api/notifications/trade-closed" ||
-    path.startsWith("/api/ai/") ||
-    path === "/api/trading/sync" ||
-    path === "/api/trading/public" ||
-    path === "/api/trading/master-sync" ||
-    path === "/api/partners/click" ||
-    path === "/api/site-content/public" ||
-    path.startsWith("/api/site-content/media/") ||
-    path === "/releases/latest-stable.json" ||
-    (path.startsWith("/releases/") && path.endsWith(".zip")) ||
-    isInternalReleaseAssetFetch(req, path) ||
-    path.startsWith("/brand/") ||
-    path.startsWith("/media/") ||
-    path === "/favicon.ico" ||
-    path === "/site.webmanifest" ||
-    path === "/robots.txt" ||
-    path === "/sitemap.xml";
-
-  if (!checkCsrf(req, path)) {
-    const denied = NextResponse.json(
-      { ok: false, error: { code: "CSRF", message: "Origin mismatch" } },
-      { status: 403 }
-    );
-    return applySecurityHeaders(denied);
-  }
-
-  if (!isLoggedIn && !isPublic) {
-    if (path.startsWith("/api/")) {
-      const res = NextResponse.json(
-        { ok: false, error: { code: "UNAUTHORIZED", message: "Authentication required" } },
-        { status: 401 }
-      );
-      return applySecurityHeaders(res);
-    }
-    const url = new URL("/login", req.nextUrl.origin);
-    url.searchParams.set("callbackUrl", path);
-    return applySecurityHeaders(NextResponse.redirect(url));
-  }
-
-  if (isLoggedIn && path === "/login") {
-    const cb = req.nextUrl.searchParams.get("callbackUrl") || "";
-    const dest =
-      cb.startsWith("/") && !cb.startsWith("//") && !cb.includes("://")
-        ? cb
-        : "/portal";
-    return applySecurityHeaders(NextResponse.redirect(new URL(dest, req.nextUrl.origin)));
-  }
-
-  return applySecurityHeaders(NextResponse.next());
-});
-
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico|.*\\.png$).*)"],
 };

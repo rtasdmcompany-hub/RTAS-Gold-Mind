@@ -45,11 +45,11 @@ const companyName = firstEnv(
 );
 const productName = firstEnv(
   ["NEXT_PUBLIC_BRAND_PRODUCT", "BRAND_PRODUCT"],
-  "RTAS GOLD MIND PROFESSIONAL"
+  "RTAS GOLD MIND AUTOMATIC TRADING SOFTWARE"
 );
 const productFullName = firstEnv(
   ["NEXT_PUBLIC_BRAND_PRODUCT_FULL", "BRAND_PRODUCT_FULL"],
-  "RTAS GOLD MIND AI v2.0 PROFESSIONAL"
+  "RTAS GOLD MIND AUTOMATIC TRADING SOFTWARE"
 );
 const productShortName = firstEnv(
   ["NEXT_PUBLIC_BRAND_PRODUCT_SHORT", "BRAND_PRODUCT_SHORT"],
@@ -141,9 +141,9 @@ export const brand = {
   brandName,
   /** Legal / company display name */
   companyName,
-  /** Commercial product lockup (e.g. RTAS GOLD MIND PROFESSIONAL) */
+  /** Commercial product lockup (e.g. RTAS GOLD MIND AUTOMATIC TRADING SOFTWARE) */
   productName,
-  /** Full product title including edition (e.g. RTAS GOLD MIND AI v2.0 PROFESSIONAL) */
+  /** Full product title including edition (e.g. RTAS GOLD MIND AUTOMATIC TRADING SOFTWARE) */
   productFullName,
   /** Alias for brandName */
   productShortName,
@@ -195,7 +195,7 @@ export const brand = {
   copyrightYear,
   /** e.g. Â© 2026 RTAS GOLD MIND */
   copyright: `Â© ${copyrightYear} ${companyName}`,
-  /** e.g. Â© 2026 RTAS GOLD MIND PROFESSIONAL */
+  /** e.g. Â© 2026 RTAS GOLD MIND AUTOMATIC TRADING SOFTWARE */
   copyrightProduct: `Â© ${copyrightYear} ${productName}`,
   copyrightNotice: `Â© ${copyrightYear} ${companyName}. All rights reserved.`,
 

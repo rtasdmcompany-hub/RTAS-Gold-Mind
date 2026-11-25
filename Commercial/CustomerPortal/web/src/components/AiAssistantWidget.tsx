@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 
 type AiSurface =
   | "website"
@@ -123,6 +124,9 @@ export function AiAssistantWidget({
       setBusy(false);
     }
   }
+
+  // Admin button sirf admin role par dikhe
+  const isAdmin = role === "admin" || role === "support";
 
   return (
     <>
@@ -285,6 +289,28 @@ export function AiAssistantWidget({
           background: rgba(0, 0, 0, 0.5);
           z-index: 9998;
         }
+        .admin-float-btn {
+          position: fixed;
+          left: 20px;
+          bottom: 20px;
+          z-index: 9999;
+          display: inline-flex;
+          align-items: center;
+          gap: 6px;
+          background: linear-gradient(135deg, #f5c542, #c9971f);
+          color: #0a0a0a;
+          border-radius: 10px;
+          padding: 10px 16px;
+          font-weight: 800;
+          font-size: 13px;
+          text-decoration: none;
+          box-shadow: 0 4px 18px rgba(245, 197, 66, 0.35);
+          animation: adminPulse 2s ease-in-out infinite;
+        }
+        @keyframes adminPulse {
+          0%, 100% { box-shadow: 0 4px 18px rgba(245, 197, 66, 0.35); }
+          50% { box-shadow: 0 4px 30px rgba(245, 197, 66, 0.7); }
+        }
         @keyframes tgmBounce {
           0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
           40% { transform: translateY(-5px); opacity: 1; }
@@ -326,8 +352,21 @@ export function AiAssistantWidget({
             width: 100%;
             height: 60px;
           }
+          .admin-float-btn {
+            left: 10px;
+            bottom: 10px;
+            padding: 8px 12px;
+            font-size: 12px;
+          }
         }
       `}</style>
+
+      {/* Admin Only button - left bottom, sirf admin/support role par */}
+      {isAdmin && (
+        <Link href="/portal/admin" className="admin-float-btn" aria-label="Admin Only">
+          ◆ Admin Only
+        </Link>
+      )}
 
       <div className="ai-widget-container">
         {!open && (
