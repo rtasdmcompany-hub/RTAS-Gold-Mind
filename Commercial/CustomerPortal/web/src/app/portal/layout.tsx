@@ -52,7 +52,7 @@ export default async function PortalLayout({
         {/* Content area */}
         <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
           {/* User bar */}
-          <div className="topbar portal-topbar" style={{ padding: "16px 24px" }}>
+          <div style={{ padding: 0, borderBottom: "none" }}>
             <PortalUserBar
               name={session.user.name}
               email={session.user.email}
