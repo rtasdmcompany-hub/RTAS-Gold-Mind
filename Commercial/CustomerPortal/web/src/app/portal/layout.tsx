@@ -5,6 +5,7 @@ import { EnterpriseNav } from "@/components/enterprise/EnterpriseNav";
 import { EnterpriseFooter } from "@/components/enterprise/EnterpriseFooter";
 import { PortalNav } from "@/components/PortalNav";
 import { PortalUserBar } from "@/components/PortalUserBar";
+import { AiAssistantWidget } from "@/components/AiAssistantWidget";
 import { canAccessAdminConsole } from "@/server/admin/roles";
 import { isDevAdminBypass } from "@/server/security/dev-bypass";
 import { getParticipantByEmail } from "@/server/launch/beta-store";
@@ -23,7 +24,7 @@ export default async function PortalLayout({
     redirect("/login");
   }
   if (!session?.user) redirect("/login");
-  const role = (session.user as { role?: string }).role;
+  const role = (session.user as { role?: string }).role || "customer";
   const showAdmin = canAccessAdminConsole(role) || isDevAdminBypass(session.user.email);
 
   let showBeta = false;
@@ -71,26 +72,13 @@ export default async function PortalLayout({
         </div>
       </div>
 
-      <style>{`
-        /* Responsive layout */
-        @media (max-width: 1024px) {
-          .portal-topbar {
-            padding: 12px 16px !important;
-          }
-          main {
-            padding: 16px !important;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .portal-topbar {
-            padding: 12px !important;
-          }
-          main {
-            padding: 12px !important;
-          }
-        }
-      `}</style>
+      {/* AI Widget with admin role */}
+      <AiAssistantWidget
+        surface="customer_portal"
+        role={showAdmin ? "admin" : "customer"}
+        customerEmail={session.user.email || undefined}
+        title="May I help you?"
+      />
     </div>
   );
 }
