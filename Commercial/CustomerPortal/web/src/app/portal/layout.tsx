@@ -1,8 +1,9 @@
 import { auth } from "@/auth";
 import type { Session } from "next-auth";
-import Link from "next/link";
 import { EnterpriseNav } from "@/components/enterprise/EnterpriseNav";
 import { EnterpriseFooter } from "@/components/enterprise/EnterpriseFooter";
+import { SiteContentProvider } from "@/components/enterprise/SiteContentProvider";
+import { ensureSiteContentLoaded, getPublicSiteContent } from "@/server/site-content/store";
 import { PortalNav } from "@/components/PortalNav";
 import { PortalUserBar } from "@/components/PortalUserBar";
 import { AiAssistantWidget } from "@/components/AiAssistantWidget";
@@ -24,7 +25,9 @@ export default async function PortalLayout({
     redirect("/login");
   }
   if (!session?.user) redirect("/login");
-  const role = (session.user as { role?: string }).role || "customer";
+
+  // ✅ Role ko lowercase karo — "SUPER_ADMIN" ab "super_admin" ban jayega
+  const role = ((session.user as { role?: string }).role || "customer").toLowerCase();
   const showAdmin = canAccessAdminConsole(role) || isDevAdminBypass(session.user.email);
 
   let showBeta = false;
@@ -40,45 +43,43 @@ export default async function PortalLayout({
     showPartner = false;
   }
 
+  // ✅ Server se site content load karo (same as home page)
+  await ensureSiteContentLoaded();
+  const siteContent = getPublicSiteContent();
+
   return (
-    <div className="e-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      {/* Same header as home page */}
-      <EnterpriseNav />
+    <SiteContentProvider initial={siteContent}>
+      <div className="e-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
+        <EnterpriseNav />
 
-      {/* Main layout: Sidebar + Content */}
-      <div style={{ display: "flex", flex: 1, position: "relative" }}>
-        {/* Portal sidebar */}
-        <PortalNav showAdmin={!!showAdmin} showBeta={showBeta} showPartner={showPartner} />
+        <div style={{ display: "flex", flex: 1, position: "relative" }}>
+          <PortalNav showAdmin={!!showAdmin} showBeta={showBeta} showPartner={showPartner} />
 
-        {/* Content area */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-          {/* User bar */}
-          <div style={{ padding: 0, borderBottom: "none" }}>
-            <PortalUserBar
-              name={session.user.name}
-              email={session.user.email}
-              image={session.user.image}
-              role={role}
-            />
+          <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
+            <div style={{ padding: 0, borderBottom: "none" }}>
+              <PortalUserBar
+                name={session.user.name}
+                email={session.user.email}
+                image={session.user.image}
+                role={role}
+              />
+            </div>
+
+            <main style={{ flex: 1, padding: "24px", overflow: "auto" }}>
+              {children}
+            </main>
+
+            <EnterpriseFooter />
           </div>
-
-          {/* Page content */}
-          <main style={{ flex: 1, padding: "24px", overflow: "auto" }}>
-            {children}
-          </main>
-
-          {/* Same footer as home page */}
-          <EnterpriseFooter />
         </div>
-      </div>
 
-      {/* AI Widget with admin role */}
-      <AiAssistantWidget
-        surface="customer_portal"
-        role={showAdmin ? "admin" : "customer"}
-        customerEmail={session.user.email || undefined}
-        title="May I help you?"
-      />
-    </div>
+        <AiAssistantWidget
+          surface="customer_portal"
+          role={showAdmin ? "admin" : "customer"}
+          customerEmail={session.user.email || undefined}
+          title="May I help you?"
+        />
+      </div>
+    </SiteContentProvider>
   );
 }

@@ -145,10 +145,11 @@ export const ROLE_PERMISSIONS: Record<string, AdminPermission[]> = {
 
 export function normalizeAdminRole(role?: string): AdminRole {
   if (!role) return "customer";
-  if (role === "admin" || role === "owner" || role === "administrator") return "super_admin";
-  if (role === "support") return "support_agent";
-  if (role === "readonly" || role === "read_only" || role === "readonly_admin") return "auditor";
-  return role as AdminRole;
+  const r = role.trim().toLowerCase();
+  if (r === "admin" || r === "owner" || r === "administrator" || r === "super_admin") return "super_admin";
+  if (r === "support") return "support_agent";
+  if (r === "readonly" || r === "read_only" || r === "readonly_admin") return "auditor";
+  return r as AdminRole;
 }
 
 export function hasPermission(role: string | undefined, permission: AdminPermission): boolean {

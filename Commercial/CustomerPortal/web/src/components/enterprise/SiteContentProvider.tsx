@@ -26,8 +26,8 @@ const EMPTY: PublicSiteContent = {
     footerRtasDigital: "/brand/footer-rtas-digital.png",
   },
   header: {
-    brandName: "THE GOLD MIND",
-    brandSub: "Professional",
+    brandName: "RTAS GOLD MIND",
+    brandSub: "Automatic Trading Software",
     ctaLabel: "User Portal",
     ctaHref: "/login",
   },
