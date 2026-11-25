@@ -1,6 +1,8 @@
 import { auth } from "@/auth";
 import type { Session } from "next-auth";
 import Link from "next/link";
+import { EnterpriseNav } from "@/components/enterprise/EnterpriseNav";
+import { EnterpriseFooter } from "@/components/enterprise/EnterpriseFooter";
 import { PortalNav } from "@/components/PortalNav";
 import { PortalUserBar } from "@/components/PortalUserBar";
 import { canAccessAdminConsole } from "@/server/admin/roles";
@@ -8,7 +10,6 @@ import { isDevAdminBypass } from "@/server/security/dev-bypass";
 import { getParticipantByEmail } from "@/server/launch/beta-store";
 import { getPartnerByEmail } from "@/server/partners/portal";
 import { redirect } from "next/navigation";
-import { brand } from "@/lib/brand";
 
 export default async function PortalLayout({
   children,
@@ -39,30 +40,34 @@ export default async function PortalLayout({
   }
 
   return (
-    <div className="shell portal-shell">
-      <PortalNav showAdmin={!!showAdmin} showBeta={showBeta} showPartner={showPartner} />
-      <div className="main">
-        <div className="topbar portal-topbar">
-          <PortalUserBar
-            name={session.user.name}
-            email={session.user.email}
-            image={session.user.image}
-            role={role}
-          />
-        </div>
-        {children}
-        <footer className="portal-footer-block">
-          <p className="footer-note">
-            {brand.productFullName} · Customer Portal · Commercial service only · Core Trading Engine is not
-            connected to this application.
-          </p>
-          <div className="portal-footer-links">
-            <Link href="/">← Back to Official Website</Link>
-            <Link href="/privacy">Privacy</Link>
-            <Link href="/terms">Terms</Link>
-            <Link href="/contact">Support</Link>
+    <div className="e-site">
+      {/* Same header as home page */}
+      <EnterpriseNav />
+
+      <div style={{ display: "flex", minHeight: "calc(100vh - 80px)" }}>
+        {/* Portal sidebar */}
+        <PortalNav showAdmin={!!showAdmin} showBeta={showBeta} showPartner={showPartner} />
+
+        {/* Main content area */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+          {/* User bar */}
+          <div className="topbar portal-topbar">
+            <PortalUserBar
+              name={session.user.name}
+              email={session.user.email}
+              image={session.user.image}
+              role={role}
+            />
           </div>
-        </footer>
+
+          {/* Page content */}
+          <main style={{ flex: 1, padding: "24px" }}>
+            {children}
+          </main>
+
+          {/* Same footer as home page */}
+          <EnterpriseFooter />
+        </div>
       </div>
     </div>
   );
