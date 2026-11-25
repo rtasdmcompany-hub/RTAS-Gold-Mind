@@ -3,7 +3,6 @@ import type { Session } from "next-auth";
 import Link from "next/link";
 import { PortalNav } from "@/components/PortalNav";
 import { PortalUserBar } from "@/components/PortalUserBar";
-import { BrandLogo } from "@/components/BrandLogo";
 import { canAccessAdminConsole } from "@/server/admin/roles";
 import { isDevAdminBypass } from "@/server/security/dev-bypass";
 import { getParticipantByEmail } from "@/server/launch/beta-store";
@@ -25,7 +24,7 @@ export default async function PortalLayout({
   if (!session?.user) redirect("/login");
   const role = (session.user as { role?: string }).role;
   const showAdmin = canAccessAdminConsole(role) || isDevAdminBypass(session.user.email);
-  // Beta / Partner nav extras must never crash the whole portal if their local stores fail.
+
   let showBeta = false;
   let showPartner = false;
   try {
@@ -43,17 +42,6 @@ export default async function PortalLayout({
     <div className="shell portal-shell">
       <PortalNav showAdmin={!!showAdmin} showBeta={showBeta} showPartner={showPartner} />
       <div className="main">
-        <div className="portal-site-bar">
-          <Link href="/" className="portal-site-bar-brand">
-            {brand.brandName} · Official Website
-          </Link>
-          <div className="portal-site-bar-links">
-            <Link href="/">Home</Link>
-            <Link href="/pricing">Pricing</Link>
-            <Link href="/docs">Docs</Link>
-            <Link href="/contact">Contact</Link>
-          </div>
-        </div>
         <div className="topbar portal-topbar">
           <PortalUserBar
             name={session.user.name}
@@ -64,9 +52,6 @@ export default async function PortalLayout({
         </div>
         {children}
         <footer className="portal-footer-block">
-          <div className="portal-footer-brands">
-            <BrandLogo variant="footer" href="/" />
-          </div>
           <p className="footer-note">
             {brand.productFullName} · Customer Portal · Commercial service only · Core Trading Engine is not
             connected to this application.
@@ -75,11 +60,6 @@ export default async function PortalLayout({
             <Link href="/">← Back to Official Website</Link>
             <Link href="/privacy">Privacy</Link>
             <Link href="/terms">Terms</Link>
-            <Link href="/eula">EULA</Link>
-            <Link href="/cookies">Cookies</Link>
-            <Link href="/refund">Refunds</Link>
-            <Link href="/disclaimer">Disclaimer</Link>
-            <Link href="/risk">Risk</Link>
             <Link href="/contact">Support</Link>
           </div>
         </footer>
@@ -87,4 +67,3 @@ export default async function PortalLayout({
     </div>
   );
 }
-

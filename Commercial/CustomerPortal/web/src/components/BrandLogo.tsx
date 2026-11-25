@@ -6,31 +6,31 @@ type Variant = "header" | "nav" | "login" | "footer" | "hero";
 
 const SRC: Record<Variant, { src: string; width: number; height: number; alt: string }> = {
   header: {
-    src: "/brand/the-gold-mind-logo-header.png",
+    src: "/brand/rtas-digital-marketing-logo.png",
     width: 280,
     height: 80,
     alt: brand.productFullName,
   },
   nav: {
-    src: "/brand/the-gold-mind-logo-nav.png",
+    src: "/brand/rtas-digital-marketing-logo.png",
     width: 180,
     height: 72,
     alt: `${brand.brandName}`,
   },
   login: {
-    src: "/brand/the-gold-mind-logo-login.png",
+    src: "/brand/rtas-digital-marketing-logo.png",
     width: 120,
     height: 120,
     alt: `${brand.brandName} Automated Trading Software`,
   },
   footer: {
-    src: "/brand/the-gold-mind-logo-footer.png",
+    src: "/brand/footer-gold-mind.png",
     width: 160,
     height: 48,
     alt: `${brand.brandName}`,
   },
   hero: {
-    src: "/brand/the-gold-mind-logo-dark.png",
+    src: "/brand/rtas-digital-marketing-logo.png",
     width: 420,
     height: 420,
     alt: `${brand.brandName} Automated Trading Software`,
@@ -73,8 +73,6 @@ export function BrandLogo({
     </Link>
   );
 }
-
-
 
 export function UserAvatar({
   name,
