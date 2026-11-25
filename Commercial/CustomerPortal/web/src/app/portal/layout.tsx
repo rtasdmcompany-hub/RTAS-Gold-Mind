@@ -40,18 +40,19 @@ export default async function PortalLayout({
   }
 
   return (
-    <div className="e-site">
+    <div className="e-site" style={{ minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       {/* Same header as home page */}
       <EnterpriseNav />
 
-      <div style={{ display: "flex", minHeight: "calc(100vh - 80px)" }}>
+      {/* Main layout: Sidebar + Content */}
+      <div style={{ display: "flex", flex: 1, position: "relative" }}>
         {/* Portal sidebar */}
         <PortalNav showAdmin={!!showAdmin} showBeta={showBeta} showPartner={showPartner} />
 
-        {/* Main content area */}
-        <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* Content area */}
+        <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
           {/* User bar */}
-          <div className="topbar portal-topbar">
+          <div className="topbar portal-topbar" style={{ padding: "16px 24px" }}>
             <PortalUserBar
               name={session.user.name}
               email={session.user.email}
@@ -61,7 +62,7 @@ export default async function PortalLayout({
           </div>
 
           {/* Page content */}
-          <main style={{ flex: 1, padding: "24px" }}>
+          <main style={{ flex: 1, padding: "24px", overflow: "auto" }}>
             {children}
           </main>
 
@@ -69,6 +70,27 @@ export default async function PortalLayout({
           <EnterpriseFooter />
         </div>
       </div>
+
+      <style>{`
+        /* Responsive layout */
+        @media (max-width: 1024px) {
+          .portal-topbar {
+            padding: 12px 16px !important;
+          }
+          main {
+            padding: 16px !important;
+          }
+        }
+
+        @media (max-width: 768px) {
+          .portal-topbar {
+            padding: 12px !important;
+          }
+          main {
+            padding: 12px !important;
+          }
+        }
+      `}</style>
     </div>
   );
 }

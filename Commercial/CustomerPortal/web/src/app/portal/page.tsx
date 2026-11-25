@@ -52,19 +52,61 @@ export default async function DashboardPage() {
       <style>{`
         .dash-grid {
           display: grid;
-          grid-template-columns: repeat(3, 1fr);
-          gap: 16px;
-          margin-bottom: 16px;
+          grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+          gap: 20px;
+          margin-bottom: 24px;
         }
-        @media (max-width: 900px) {
-          .dash-grid { grid-template-columns: repeat(2, 1fr); }
+        @media (max-width: 768px) {
+          .dash-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
         }
-        @media (max-width: 600px) {
-          .dash-grid { grid-template-columns: 1fr; }
+        .page-title {
+          font-size: clamp(1.5rem, 4vw, 2rem);
+          margin-bottom: 8px;
+        }
+        .page-sub {
+          font-size: clamp(0.875rem, 2vw, 1rem);
+          color: #9a95a8;
+          margin-bottom: 24px;
+        }
+        .card {
+          padding: clamp(16px, 3vw, 24px);
+          background: #16161d;
+          border: 1px solid #2a2a38;
+          border-radius: 12px;
+          transition: transform 0.2s ease;
+        }
+        .card:hover {
+          transform: translateY(-2px);
+        }
+        .card h3 {
+          font-size: clamp(0.75rem, 2vw, 0.875rem);
+          color: #f5c542;
+          margin-bottom: 12px;
+          text-transform: uppercase;
+          letter-spacing: 0.5px;
+        }
+        .card .value {
+          font-size: clamp(1.25rem, 3vw, 1.5rem);
+          color: #f4f1e8;
+          margin-bottom: 8px;
+        }
+        .card .meta {
+          font-size: clamp(0.75rem, 2vw, 0.875rem);
+          color: #9a95a8;
+        }
+        .card .meta a {
+          color: #f5c542;
+          text-decoration: none;
+        }
+        .card .meta a:hover {
+          text-decoration: underline;
         }
       `}</style>
 
-      <header style={{ marginBottom: 20 }}>
+      <header>
         <h1 className="page-title">Dashboard</h1>
         <p className="page-sub">
           Live commercial status · grace {graceDays()} day(s) · Core Trading Engine isolated. Installer activation is
@@ -75,12 +117,12 @@ export default async function DashboardPage() {
       <div className="dash-grid">
         <div className="card">
           <h3>Customer</h3>
-          <div className="value" style={{ fontSize: 18 }}>{name}</div>
+          <div className="value">{name}</div>
           <div className="meta">{email || "Not signed in"}</div>
         </div>
         <div className="card">
           <h3>Subscription</h3>
-          <div className="value" style={{ fontSize: 18 }}>
+          <div className="value">
             <StatusBadge status={primarySub?.status || "None"} />
           </div>
           <div className="meta">
@@ -92,12 +134,12 @@ export default async function DashboardPage() {
         </div>
         <div className="card">
           <h3>License</h3>
-          <div className="value" style={{ fontSize: 18 }}>
+          <div className="value">
             <StatusBadge status={primaryLicense?.status || "None"} />
           </div>
           <div className="meta">
             {primaryLicense?.keyMasked ? (
-              <Link href="/portal/licenses" style={{ textDecoration: "underline" }}>{primaryLicense.keyMasked}</Link>
+              <Link href="/portal/licenses">{primaryLicense.keyMasked}</Link>
             ) : (
               <>— <Link href="/portal/licenses">My Licenses</Link></>
             )}
@@ -105,22 +147,28 @@ export default async function DashboardPage() {
         </div>
         <div className="card">
           <h3>Product Edition</h3>
-          <div className="value" style={{ fontSize: 16 }}>{brand.productName}</div>
+          <div className="value" style={{ fontSize: "clamp(1rem, 2.5vw, 1.25rem)" }}>
+            {brand.productName}
+          </div>
         </div>
         <div className="card">
           <h3>Devices</h3>
-          <div className="value">{activeDevices} / {primaryLicense?.seatsMax ?? "—"}</div>
-          <div className="meta"><Link href="/portal/devices">Manage devices</Link></div>
+          <div className="value">
+            {activeDevices} / {primaryLicense?.seatsMax ?? "—"}
+          </div>
+          <div className="meta">
+            <Link href="/portal/devices">Manage devices</Link>
+          </div>
         </div>
         <div className="card">
           <h3>Last validated</h3>
-          <div className="value" style={{ fontSize: 14 }}>
+          <div className="value" style={{ fontSize: "clamp(0.875rem, 2vw, 1rem)" }}>
             {primaryLicense?.lastValidatedAt?.replace("T", " ").slice(0, 19) || "Not yet validated"}
           </div>
         </div>
         <div className="card">
           <h3>Invoices / Orders</h3>
-          <div className="value" style={{ fontSize: 18 }}>
+          <div className="value">
             {billing.invoices.length} / {billing.payments.filter((p) => p.status === "succeeded").length}
           </div>
           <div className="meta">
@@ -130,7 +178,9 @@ export default async function DashboardPage() {
         <div className="card">
           <h3>Open support tickets</h3>
           <div className="value">{openTickets}</div>
-          <div className="meta"><Link href="/portal/support">Support</Link></div>
+          <div className="meta">
+            <Link href="/portal/support">Support</Link>
+          </div>
         </div>
         <div className="card">
           <h3>Quick links</h3>
