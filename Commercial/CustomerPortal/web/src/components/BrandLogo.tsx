@@ -36,7 +36,7 @@ export function BrandLogo({
       height={cfg.height}
       priority={priority}
       className={className ?? "e-brand-logo"}
-      style={{ width: "auto", height: "auto", maxWidth: "100%", objectFit: "contain" }}
+      style={{ maxWidth: "100%", objectFit: "contain" }}
       unoptimized={remote}
     />
   );
