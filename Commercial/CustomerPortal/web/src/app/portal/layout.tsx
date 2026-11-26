@@ -13,6 +13,12 @@ import { getParticipantByEmail } from "@/server/launch/beta-store";
 import { getPartnerByEmail } from "@/server/partners/portal";
 import { redirect } from "next/navigation";
 
+const ADMIN_ROLES = [
+  "super_admin", "admin", "owner", "administrator",
+  "commercial_manager", "support_agent", "support",
+  "finance_manager", "qa_manager", "auditor",
+];
+
 export default async function PortalLayout({
   children,
 }: {
@@ -26,9 +32,12 @@ export default async function PortalLayout({
   }
   if (!session?.user) redirect("/login");
 
-  // ✅ Role ko lowercase karo — "SUPER_ADMIN" ab "super_admin" ban jayega
+  // ✅ Role lowercase + direct check (roles.ts bug se independent)
   const role = ((session.user as { role?: string }).role || "customer").toLowerCase();
-  const showAdmin = canAccessAdminConsole(role) || isDevAdminBypass(session.user.email);
+  const showAdmin =
+    ADMIN_ROLES.includes(role) ||
+    canAccessAdminConsole(role) ||
+    isDevAdminBypass(session.user.email);
 
   let showBeta = false;
   let showPartner = false;
@@ -43,7 +52,6 @@ export default async function PortalLayout({
     showPartner = false;
   }
 
-  // ✅ Server se site content load karo (same as home page)
   await ensureSiteContentLoaded();
   const siteContent = getPublicSiteContent();
 
@@ -56,14 +64,12 @@ export default async function PortalLayout({
           <PortalNav showAdmin={!!showAdmin} showBeta={showBeta} showPartner={showPartner} />
 
           <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
-            <div style={{ padding: 0, borderBottom: "none" }}>
-              <PortalUserBar
-                name={session.user.name}
-                email={session.user.email}
-                image={session.user.image}
-                role={role}
-              />
-            </div>
+            <PortalUserBar
+              name={session.user.name}
+              email={session.user.email}
+              image={session.user.image}
+              role={role}
+            />
 
             <main style={{ flex: 1, padding: "24px", overflow: "auto" }}>
               {children}

@@ -14,8 +14,8 @@ export function PortalUserBar({
   image?: string | null;
   role?: string;
 }) {
-  // Sirf first name lo
   const firstName = (name || "User").split(/\s+/)[0];
+  const isAdmin = ["super_admin", "admin", "owner", "administrator", "commercial_manager", "support_agent", "support", "finance_manager", "qa_manager", "auditor"].includes((role || "").toLowerCase());
 
   return (
     <div
@@ -25,26 +25,35 @@ export function PortalUserBar({
         justifyContent: "space-between",
         gap: 12,
         padding: "10px 20px",
-        background: "#0a0a0a",
+        background: "#111118",
         borderBottom: "1px solid #2a2a38",
+        flexWrap: "wrap",
       }}
     >
-      {/* Left: Avatar + First Name */}
+      {/* Left: avatar + first name */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
         <UserAvatar name={name} image={image} size={32} />
-        <span
-          style={{
-            color: "#f4f1e8",
-            fontSize: 14,
-            fontWeight: 600,
-            whiteSpace: "nowrap",
-          }}
-        >
+        <span style={{ color: "#f4f1e8", fontSize: 14, fontWeight: 600, whiteSpace: "nowrap" }}>
           {firstName}
         </span>
+        {isAdmin && (
+          <span
+            style={{
+              color: "#f5c542",
+              fontSize: 10,
+              fontWeight: 700,
+              border: "1px solid rgba(245,197,66,.4)",
+              borderRadius: 99,
+              padding: "2px 8px",
+              letterSpacing: 0.5,
+            }}
+          >
+            ADMIN
+          </span>
+        )}
       </div>
 
-      {/* Right: Icon Buttons */}
+      {/* Right: icon buttons */}
       <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
         <Link
           href="/"
@@ -58,18 +67,8 @@ export function PortalUserBar({
             placeItems: "center",
             textDecoration: "none",
             color: "#d4d4d8",
-            background: "transparent",
             border: "1px solid #2a2a38",
             fontSize: 16,
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.borderColor = "#f5c542";
-            e.currentTarget.style.color = "#f5c542";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.borderColor = "#2a2a38";
-            e.currentTarget.style.color = "#d4d4d8";
           }}
         >
           🏠
@@ -87,17 +86,9 @@ export function PortalUserBar({
             placeItems: "center",
             textDecoration: "none",
             color: "#0a0a0a",
-            background: "linear-gradient(135deg, #f5c542, #c9971f)",
+            background: "linear-gradient(135deg,#f5c542,#c9971f)",
             fontSize: 16,
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={(e) => {
-            e.currentTarget.style.transform = "translateY(-1px)";
-            e.currentTarget.style.boxShadow = "0 4px 12px rgba(245, 197, 66, 0.4)";
-          }}
-          onMouseLeave={(e) => {
-            e.currentTarget.style.transform = "translateY(0)";
-            e.currentTarget.style.boxShadow = "none";
+            fontWeight: 800,
           }}
         >
           ⏻
