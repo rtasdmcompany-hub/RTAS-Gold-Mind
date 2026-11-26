@@ -6,7 +6,6 @@ import { SiteContentProvider } from "@/components/enterprise/SiteContentProvider
 import { ensureSiteContentLoaded, getPublicSiteContent } from "@/server/site-content/store";
 import { PortalNav } from "@/components/PortalNav";
 import { PortalUserBar } from "@/components/PortalUserBar";
-import { AiAssistantWidget } from "@/components/AiAssistantWidget";
 import { canAccessAdminConsole } from "@/server/admin/roles";
 import { isDevAdminBypass } from "@/server/security/dev-bypass";
 import { getParticipantByEmail } from "@/server/launch/beta-store";
@@ -32,7 +31,6 @@ export default async function PortalLayout({
   }
   if (!session?.user) redirect("/login");
 
-  // ✅ Role lowercase + direct check (roles.ts bug se independent)
   const role = ((session.user as { role?: string }).role || "customer").toLowerCase();
   const showAdmin =
     ADMIN_ROLES.includes(role) ||
@@ -78,13 +76,6 @@ export default async function PortalLayout({
             <EnterpriseFooter />
           </div>
         </div>
-
-        <AiAssistantWidget
-          surface="customer_portal"
-          role={showAdmin ? "admin" : "customer"}
-          customerEmail={session.user.email || undefined}
-          title="May I help you?"
-        />
       </div>
     </SiteContentProvider>
   );
