@@ -185,7 +185,7 @@ export default async function DashboardPage() {
         <div className="card">
           <h3>Quick links</h3>
           <div className="meta">
-            <Link href="/portal/downloads">Downloads</Link> · <Link href="/portal/announcements">Announcements</Link> ·{" "}
+            <Link href="/portal/downloads">Downloads</Link> · <Link href="/portal/billing">Billing</Link> ·{" "}
             <Link href="/portal/account">Account</Link>
           </div>
         </div>

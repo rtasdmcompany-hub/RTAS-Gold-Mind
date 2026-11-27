@@ -2,7 +2,6 @@ import { auth } from "@/auth";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { StatusBadge } from "@/components/StatusBadge";
-import { AiAssistantWidget } from "@/components/AiAssistantWidget";
 import {
   listSupportTickets,
   ensureSupportStoreLoaded,
@@ -23,9 +22,7 @@ export default async function SupportPage() {
       <header style={{ marginBottom: 20 }}>
         <h1 className="page-title">Support</h1>
         <p className="page-sub">
-          Ticket intake · audited · commercial cloud. <Link href="/portal/knowledge-base">Knowledge Base</Link>
-          {" · "}
-          AI Assistant available via the chat button.
+          Ticket intake · audited · commercial cloud. AI Assistant available via the chat button.
         </p>
       </header>
 
@@ -83,12 +80,6 @@ export default async function SupportPage() {
           </tbody>
         </table>
       </div>
-      <AiAssistantWidget
-        surface="support_center"
-        role="customer"
-        customerEmail={email}
-        title="Support AI"
-      />
     </>
   );
 }

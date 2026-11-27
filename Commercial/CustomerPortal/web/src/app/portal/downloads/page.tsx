@@ -64,9 +64,6 @@ export default async function DownloadsPage() {
             <a className="btn" href={`/releases/${latest.packageFile}`} download={latest.packageFile}>
               Direct ZIP link
             </a>
-            <Link className="btn" href="/portal/updates">
-              Check for updates
-            </Link>
           </div>
 
           <div className="grid grid-2" style={{ marginTop: 20, gap: 12 }}>
