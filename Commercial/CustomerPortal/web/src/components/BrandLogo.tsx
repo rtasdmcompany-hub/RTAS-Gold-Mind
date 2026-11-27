@@ -1,5 +1,8 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { brand } from "@/lib/brand";
 
 type Variant = "header" | "nav" | "login" | "footer" | "hero";
@@ -28,9 +31,20 @@ export function BrandLogo({
   const cfg = SRC[variant];
   const resolved = (src || "").trim() || cfg.src;
   const remote = /^https?:\/\//i.test(resolved) || resolved.startsWith("/api/site-content/media/");
+
+  // ✅ Cache-busting: sirf remote/blob URLs par (client-side, hydration-safe)
+  const [bust, setBust] = useState("");
+  useEffect(() => {
+    if (remote) {
+      setBust(`${resolved.includes("?") ? "&" : "?"}t=${Date.now()}`);
+    }
+  }, [remote, resolved]);
+
+  const finalSrc = remote ? `${resolved}${bust}` : resolved;
+
   const img = (
     <Image
-      src={resolved}
+      src={finalSrc}
       alt={cfg.alt}
       width={cfg.width}
       height={cfg.height}

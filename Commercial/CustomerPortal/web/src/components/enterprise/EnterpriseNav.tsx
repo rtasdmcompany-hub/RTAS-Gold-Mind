@@ -70,7 +70,7 @@ export function EnterpriseNav({ transparent = false }: { transparent?: boolean }
               variant="header"
               priority
               className="e-brand-logo e-brand-logo--header"
-              src={site.logos.header}
+              src={site.logos.header ? `${site.logos.header}${site.logos.header.includes('?') ? '&' : '?'}t=${Date.now()}` : undefined}
             />
             <span className="e-brand-wordmark">
               <span className="e-brand-wordmark-title">{site.header.brandName}</span>

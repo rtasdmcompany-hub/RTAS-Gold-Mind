@@ -1,14 +1,33 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { Fragment } from "react";
-
-const BRANDS = [
-  { src: "/brand/footer-gold-mind.png", name: "RTAS Gold Mind", alt: "RTAS Gold Mind" },
-  { src: "/brand/footer-rtas-digital.png", name: "RTAS Digital Marketing", alt: "RTAS Digital Marketing Company" },
-  { src: "/brand/footer-rtas-group.png", name: "RTAS Group", alt: "RTAS Group" },
-];
+import { useSiteContent } from "./SiteContentProvider";
 
 export function EnterpriseFooter() {
+  const site = useSiteContent();
+
+  // CMS se logos lo — agar CMS mein nahi to fallback
+  const logos = {
+    goldMind: site.logos.footerGoldMind || "/brand/footer-gold-mind.png",
+    rtasDigital: site.logos.footerRtasDigital || "/brand/footer-rtas-digital.png",
+    rtasGroup: site.logos.footerRtasGroup || "/brand/footer-rtas-group.png",
+  };
+
+  // Cache-busting: blob URL ke sath timestamp taake purani image cache na ho
+  const bust = (url: string) => {
+    if (url.startsWith("/brand/")) return url; // static files — cache theek hai
+    const sep = url.includes("?") ? "&" : "?";
+    return `${url}${sep}t=${Date.now()}`;
+  };
+
+  const BRANDS = [
+    { src: bust(logos.goldMind), name: "RTAS Gold Mind", alt: "RTAS Gold Mind" },
+    { src: bust(logos.rtasDigital), name: "RTAS Digital Marketing", alt: "RTAS Digital Marketing Company" },
+    { src: bust(logos.rtasGroup), name: "RTAS Group", alt: "RTAS Group" },
+  ];
+
   return (
     <footer className="e-footer">
       <style>{`
